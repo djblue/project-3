@@ -44,7 +44,7 @@ test: unit tc1 tc2 tc3
 #test: unit
 
 # run all tests
-unit: ; @$(MAKE) -sC tests
+unit: clean all; @$(MAKE) -sC tests
 
 # run all test cases
 tc%: tc/input%.txt
