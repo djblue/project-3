@@ -1,0 +1,5 @@
+hello;world cse340 asu 2013/05/31 // end
+boolean $xx= ((((((((23WE + 44 - 3 / 2 % 45 <=17) > 0xfffff.34.45;
+"hello23.1 '-)">-''' //this is an error!
+(1 + 09 // "it is ok"
+'\a' = 'a'
