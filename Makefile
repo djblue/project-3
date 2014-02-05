@@ -8,7 +8,7 @@
 
 # -- setup ----------------------------------------------------
 
-.SILENT: all clean tc1 tc2 tc3
+.SILENT: all clean tc1 tc2 tc3 tc4
 
 # set files to be archived for submission
 ASSIGN_FILES=*
@@ -40,7 +40,7 @@ clean: ; rm -rf *.o $(EXECUTABLE) && rm -f tests/runner
 # archive the assignment
 zip: $(ASSIGN_FILES); zip -r CSE310-P03-Badahdah-Abdullah.zip $^
 
-test: unit tc1 tc2 tc3
+test: unit tc1 tc2 tc3 tc4
 #test: unit
 
 # run all tests

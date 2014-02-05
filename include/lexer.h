@@ -9,7 +9,7 @@
 using namespace std;
 
 // character types
-#define DELIMITERS ";()[]{},"
+#define DELIMITERS ":;()[]{},"
 #define OPERATORS  "+-*/%<>=!&|"
 #define NUMERIC    "0123456789"
 #define OCTALD     "01234567"
@@ -48,7 +48,7 @@ const char *type_names[] = {
     "OCTAL",
     "STRING",
     "CHARACTER",
-    "ID",
+    "IDENTIFIER",
     "KEYWORD",
     "INTEGER"
 };
@@ -116,6 +116,10 @@ public:
             // found start of a string
             } else if (*it == '\"' || *it == '\'') {
                     inQuotes = true;
+                    if (!temp.empty()) {
+                        tokens.push_back(temp);
+                        temp.clear();
+                    }
                     quote = *it;
                     temp += *it;
             // found a delimiter
