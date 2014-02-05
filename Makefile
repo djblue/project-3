@@ -38,7 +38,7 @@ $(EXECUTABLE): $(OBJECTS); @$(CC) $(LDFLAGS) $^ -o $@
 clean: ; rm -rf *.o $(EXECUTABLE) && rm -f tests/runner
 
 # archive the assignment
-zip: $(ASSIGN_FILES); zip -r CSE310-P03-Badahdah-Abdullah.zip $^
+zip: ; zip -r Badahdah-Abdullah-P1.zip .
 
 test: unit tc1 tc2 tc3 tc4
 #test: unit
