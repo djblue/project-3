@@ -40,16 +40,18 @@ clean: ; rm -rf *.o $(EXECUTABLE) && rm -f tests/runner
 # archive the assignment
 zip: ; zip -r Badahdah-Abdullah-P1.zip .
 
-test: unit tc1 tc2 tc3 tc4
+test: unit lexer
 #test: unit
 
 # run all tests
 unit: clean all; @$(MAKE) -sC tests
 
+lexer: ltc1 ltc2 ltc3 ltc4
+
 # run all test cases
-tc%: tc/input%.txt
-	rm -f input.txt
-	cp tc/input$*.txt input.txt
-	./run input.txt output.txt
-	diff -bc output.txt tc/output$*.txt && echo "PASSED $*"
-	rm -f input.txt output.txt
+ltc%: tc/input%.txt
+	@rm -f input.txt
+	@cp tc/input$*.txt input.txt
+	@./run -l input.txt output.txt
+	@diff -bc output.txt tc/output$*.txt && echo "PASSED $*"
+	@rm -f input.txt output.txt

@@ -3,19 +3,29 @@
 #include <iostream>
 
 #include "include/lexer.h"
+#include "include/parser.h"
 
 using namespace std;
 
 int main (int argc, char** argv) {
 
-    if (argc != 3) {
-        cerr << "Usage: " << argv[0] 
-             << " inputfile outputfile" << endl;
+    int output = 0;
+    
+    // parse command line arguments
+    // -p parser output
+    // -l lexer output
+    if (argc == 4) {
+        if (argv[1][1] == 'l') {
+            output = 1;
+        }
+    } else if (argc != 3) {
+        cerr << "Usage: " << argv[0]
+             << " [opts] input output" << endl;
         return -1;
     }
 
-    ifstream fin(argv[1]);
-    ofstream fout(argv[2]);
+    ifstream fin(argv[1+output]);
+    ofstream fout(argv[2+output]);
 
     if (!fin) {
         cerr << "File: " << argv[1] 
@@ -42,8 +52,11 @@ int main (int argc, char** argv) {
         for (i = 0; i < test.size(); i++) {
             token t = l.lex(test[i], line_number);
             tokens.push_back(l.lex(test[i], line_number));
-            fout << type_names[t.type]
-                 << "\t" << t.text << endl;
+            // show lexer output
+            if (output == 1) {
+                fout << type_names[t.type]
+                     << "\t" << t.text << endl;
+            }
         }
         line_number++;
     }
