@@ -68,6 +68,13 @@ const char *keywords[] = {
     "boolean"
 };
 
+// A struct for basic token attributes.
+struct token {
+    int type;
+    std::string text;
+    int line; 
+};
+
 // This class implements a lexical analyzer
 class lexer {
 
@@ -148,11 +155,21 @@ public:
         return tokens;
     }
 
-    int lex (std::string str) {
+    token lex (std::string str) {
+        return lex(str, 0);
+    }
 
+    token lex (std::string str, int line) {
+
+        token t;
+        t.line = line;
+        t.text = str;
+
+        // determine if the token is a keyword
         for (int i = 0; i < numwords; i++) {
             if (str.compare(keywords[i]) == 0) {
-                return KEYWORD;
+                t.type = KEYWORD;
+                return t;
             }
         }
 
@@ -163,11 +180,11 @@ public:
             state = next_state(state, *it);
         }
 
-        return (state < T0 && state > 0)? state : 0; 
+        t.type = (state < T0 && state > 0)? state : 0; 
+        return t;
     }
 
     friend void test_lexer ();
-    
 };
 
 lexer::lexer () {

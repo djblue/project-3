@@ -22,51 +22,50 @@ void test_lexer () {
     title("Testing the Lexer");
 
     /* lexer tests */
-    assert(l.lex("--") == UNDEFINED,
+    assert(l.lex("--").type == UNDEFINED,
         "-- is UNDEFINED");
-    assert(l.lex("") == UNDEFINED,
+    assert(l.lex("").type == UNDEFINED,
         "is UNDEFINED");
-    assert(l.lex("{") == DELIMITER,
+    assert(l.lex("{").type == DELIMITER,
         "{ is a DELIMITER");
-    assert(l.lex("$123") == ID,
+    assert(l.lex("$123").type == ID,
         "$123 is a ID");
-    assert(l.lex("(") == DELIMITER,
+    assert(l.lex("(").type == DELIMITER,
         "( is a DELIMITER");
-    assert(l.lex("*") == OPERATOR,
+    assert(l.lex("*").type == OPERATOR,
         "* is an OPERATOR");
-    assert(l.lex("+") == OPERATOR,
+    assert(l.lex("+").type == OPERATOR,
         "+ is an OPERATOR");
-    assert(l.lex("+") == OPERATOR,
+    assert(l.lex("+").type == OPERATOR,
         "+ is an OPERATOR");
-    assert(l.lex("1234") == INTEGER,
+    assert(l.lex("1234").type == INTEGER,
         "1234 is is an INTEGER.");
-    assert(l.lex("0") == ZERO,
+    assert(l.lex("0").type == ZERO,
         "0 is is an INTEGER.");
-    assert(l.lex("3.14") == FLOAT,
+    assert(l.lex("3.14").type == FLOAT,
         "3.14 is a FLOAT.");
-    assert(l.lex(".3.14") == UNDEFINED,
+    assert(l.lex(".3.14").type == UNDEFINED,
         ".3.14 is not a FLOAT.");
-    assert(l.lex("0xAB") == HEXADECIMAL,
+    assert(l.lex("0xAB").type == HEXADECIMAL,
         "0xAB is a HEXADECIMAL");
-    assert(l.lex("0x1234567890ABCD") == HEXADECIMAL,
+    assert(l.lex("0x1234567890ABCD").type == HEXADECIMAL,
         "0xAB is a large HEXADECIMAL");
-    assert(l.lex("015") == OCTAL,
+    assert(l.lex("015").type == OCTAL,
         "015 is an OCTAL");
-    assert(l.lex("\"hello\"") == STRING,
+    assert(l.lex("\"hello\"").type == STRING,
         "\"hello\" is a STRING");
-    assert(l.lex("\"$3.45asfa--b123\"") == STRING,
+    assert(l.lex("\"$3.45asfa--b123\"").type == STRING,
         "\"$3.45asfa--b123\" is a STRING");
-    assert(l.lex("\'h\'") == CHAR,
+    assert(l.lex("\'h\'").type == CHAR,
         "\'h\' is a CHAR");
-    assert(l.lex("\'1\'") == CHAR,
+    assert(l.lex("\'1\'").type == CHAR,
         "\'1\' is a CHAR");
-    assert(l.lex("\'.\'") == CHAR,
+    assert(l.lex("\'.\'").type == CHAR,
         "\'.\' is a CHAR");
-    assert(l.lex("\'\\n\'") == CHAR,
+    assert(l.lex("\'\\n\'").type == CHAR,
         "escaped CHAR");
-    assert(l.lex("\"hello") == UNDEFINED,
+    assert(l.lex("\"hello").type == UNDEFINED,
         "is a broken string working.");
 
     end();
-
 }

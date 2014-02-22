@@ -22,8 +22,8 @@ std::vector<std::string>::iterator it;
     } \
     test_errors.clear();
 
-#define GDOT "\033[0;32m•\033[0;0m" // green dot
-#define RDOT "\033[0;31m•\033[0;0m" // red dot
+#define GDOT "\033[0;32m*\033[0;0m" // green dot
+#define RDOT "\033[0;31m*\033[0;0m" // red dot
 
 // custom assert macro
 #define assert(result, message) \

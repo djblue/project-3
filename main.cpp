@@ -29,23 +29,23 @@ int main (int argc, char** argv) {
         return -2;
     }
 
+    int line_number = 1;
     lexer l;
     string temp;
     vector<string> test;
     vector<string>::size_type i;
+    vector<token> tokens;
 
     // Read through the file line by line.
     while (std::getline(fin, temp)) {
-        //cout << temp; 
         test = l.split(temp);
-        /*
-        for (int i = 0; i < test.size() ; i++) {
-            cout << i << " " << test[i] << endl;
-        }*/
         for (i = 0; i < test.size(); i++) {
-            fout << type_names[l.lex(test[i])]
-                << '\t' << test[i] << endl;
+            token t = l.lex(test[i], line_number);
+            tokens.push_back(l.lex(test[i], line_number));
+            fout << type_names[t.type]
+                 << "\t" << t.text << endl;
         }
+        line_number++;
     }
 
     fin.close();
