@@ -70,7 +70,7 @@ const char *keywords[] = {
 
 // A struct for basic token attributes.
 struct token {
-    int type;
+    types type;
     std::string text;
     int line; 
 };
@@ -180,7 +180,11 @@ public:
             state = next_state(state, *it);
         }
 
-        t.type = (state < T0 && state > 0)? state : 0; 
+        if (state == ZERO) {
+            state = INTEGER;
+        }
+
+        t.type = static_cast<types>((state < T0 && state > 0)? state : 0); 
         return t;
     }
 
