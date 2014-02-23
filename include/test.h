@@ -6,34 +6,37 @@
 #include <string>
 #include <sstream>
 
-std::stringstream string_buffer;
-std::vector<std::string> test_errors;
+int __test_count = 0; 
+std::stringstream __string_buffer, __title_buffer, __error_buffer;
+std::vector<std::string> __test_errors;
 std::vector<std::string>::iterator it;
 
 #define title(text) \
-    std::cerr << \
-        "\033[0;34m" << text << "\033[0;0m" \
-            << std::endl << ">> " ;
+    __test_count = 0; \
+    __title_buffer << \
+        "\033[0;34m" << text << "\033[0;0m "; \
 
 #define end() \
-    std::cerr << std::endl; \
-    for (it = test_errors.begin(); it != test_errors.end(); it++) { \
+    __title_buffer << "(" << __test_count << ")"; \
+    std::cerr << __title_buffer.str() << std::endl << \
+        ">> " << __error_buffer.str() << std::endl; \
+    for (it = __test_errors.begin(); it != __test_errors.end(); it++) { \
         std::cerr << *it << std::endl; \
     } \
-    test_errors.clear();
+    __test_errors.clear(); __string_buffer.str(""); __title_buffer.str("");
 
 #define GDOT "\033[0;32m*\033[0;0m" // green dot
 #define RDOT "\033[0;31m*\033[0;0m" // red dot
 
 // custom assert macro
 #define assert(result, message) \
+    __test_count++; \
     if ((result) == true) { \
-        std::cerr << GDOT; \
+        __error_buffer << GDOT; \
     } else { \
-        std::cerr << RDOT; \
-        string_buffer << message; \
-        test_errors.push_back(string_buffer.str()); \
-        string_buffer.str(""); \
+        __error_buffer << RDOT; \
+        __string_buffer << message; \
+        __test_errors.push_back(__string_buffer.str()); \
     }
 
 #endif
