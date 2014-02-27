@@ -8,7 +8,7 @@
 
 # -- setup ----------------------------------------------------
 
-.SILENT: all clean tc1 tc2 tc3 tc4
+.SILENT: all clean tc1 tc2 tc3 tc4 unitk watch
 
 # set files to be archived for submission
 ASSIGN_FILES=*
@@ -40,11 +40,22 @@ clean: ; rm -rf *.o $(EXECUTABLE) && rm -f tests/runner
 # archive the assignment
 zip: ; zip -r Badahdah-Abdullah-P1.zip .
 
-test: unit lexer
-#test: unit
+# -q --quiet
+# -r --recursive
+# -e <event>
+
+watch: ; @while \
+    inotifywait -qre close_write \
+    --format "`echo -e '\a\n%T \033[0;34m%f\033[0;0m modified...'` " \
+    --timefmt "`echo -e '\033[0;32m%r\033[0;0m'`" \
+    ./include ./tests; \
+    do echo && make unit > /dev/null; done
+
+#test: unit lexer
+test: unit
 
 # run all tests
-unit: clean all; @$(MAKE) -sC tests
+unit: ; @$(MAKE) -sC tests
 
 lexer: ltc1 ltc2 ltc3 ltc4
 
@@ -55,3 +66,4 @@ ltc%: tc/input%.txt
 	@./run -l input.txt output.txt
 	@diff -bc output.txt tc/output$*.txt && echo "PASSED $*"
 	@rm -f input.txt output.txt
+
