@@ -5,4 +5,4 @@
 
 .SILENT: all
 # default make target
-all: ; cat *.spec.cpp runner.cpp | g++ -Wall -x c++ - -o runner && ./runner
+all: ; @g++ runner.cpp -o runner && ./runner
