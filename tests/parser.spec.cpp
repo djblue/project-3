@@ -17,7 +17,8 @@
 
 void test_parser () {
 
-
+    try {
+    
     title("Testing the Parser");
 
     alp("",          true, program, "Empty string is a valid program.");
@@ -29,13 +30,29 @@ void test_parser () {
         program, "Valid function with parameters.");
     alp("int max (int x, int y) {}", true, 
         program, "Valid function with multiple parameters");
-    alp("void none () { return; }", true, 
-        program, "Valid function with return statement");
 
-    alp("void one () { return 1 + 0; }", true, 
+    alp("void one () { int i; }", true,
+        program, "Valid function with one declaration.");
+    alp("void one () { int i, j; }", true,
+        program, "Valid function with two declaration.");
+
+    alp("void one () { return 1 + 2; }", true,
         program, "Valid function with return expression");
 
-    alp("one();", true, call, "Valid function call");
+    alp("i = 0;", true, assign, "Valid assignment");
+
+    alp("if (x < 0)", true, _if, "Basic if statement");
+
+    // error causing expressions 
+    alp("1*2+", false, program, "Malformed Expression");
+
+    end();
+
+    title("Testing Expressions");
+
+    alp("0", true, expression, "0 is a valid expression");
+
+    alp("true && false", true, expression, "Valid logical expression.");
 
     alp("'a'",  true, terminal, "Valid character terminal.");
     alp("\"string\"",  true, terminal, "Valid string terminal.");
@@ -46,14 +63,24 @@ void test_parser () {
     alp("true", true, terminal, "Valid true terminal.");
     alp("false",true, terminal, "Valid false terminal.");
 
+    alp("a<b", true, relational, "Valid relational statement1.")
+    alp("a>b", true, relational, "Valid relational statement2.")
+
+    alp("a==b", true, relational, "Valid relational statement3.")
+    alp("a!=b", true, relational, "Valid relational statement4.")
+
     alp("1+2", true, sum, "We can add 2 numbers.");
     alp("1-2", true, sum, "We can substract 2 numbers.");
     alp("1/2", true, product, "We can divide 2 numbers.");
     alp("1*2", true, product, "We can multiply 2 numbers.");
     alp("1%2", true, product, "We can mod 2 numbers.");
 
-    // error causing expressions 
-    alp("1*2+", false, program, "Malformed Expression");
+    alp("3 % 2 == 1", true, expression, "Complex expression.");
 
     end();
+
+    } catch (token t) {
+        end();
+        std::cout << "ERROR: " << t.text << endl;
+    }
 }
