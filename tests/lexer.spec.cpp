@@ -40,7 +40,7 @@ void test_lexer () {
         "+ is an OPERATOR");
     assert(l.lex("1234").type == INTEGER,
         "1234 is is an INTEGER.");
-    assert(l.lex("0").type == ZERO,
+    assert(l.lex("0").type == INTEGER,
         "0 is is an INTEGER.");
     assert(l.lex("3.14").type == FLOAT,
         "3.14 is a FLOAT.");
