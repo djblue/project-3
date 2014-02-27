@@ -143,26 +143,70 @@ bool parser::parameters () {/*{{{*/
 }/*}}}*/
 bool parser::line () {/*{{{*/
 
+    token next = shift();
+    
+    if (next.text == "if") {
+        unshift();
+        if (_if()) return true;
+    }
+
+    if (next.type == KEYWORD) {
+        if (local()) return true;
+    }
+
+    if (next.text == "return") {
+        if (_return()) return true;
+    }
+
+    if (next.type == ID) {
+        token t = shift();
+        
+        if (t.text == "=") {
+            if (expression() && shift().text == ";") return true;
+            else {
+                unshift();
+                unshift();
+            }
+        }
+    }
+    unshift();
+
     if (local() || assign() || _if() || _while() || _return() || call())
         return true;
 
     return false;
 }/*}}}*/
 bool parser::local () {/*{{{*/
-    return false;
+    do {
+        type(ID);
+        if (shift().text == "=") {
+            if(!expression()) return false;
+        } else {
+            unshift();
+        }
+    } while (shift().text == ",");
+    unshift();
+    text(";");
+    return true;
 }/*}}}*/
 bool parser::assign () {/*{{{*/
-    return false;
+    return false; 
 }/*}}}*/
 bool parser::_if () {/*{{{*/
-    return false;
+    
+    text("if");
+
+    text("(");
+    text(")");
+    text("{");
+    text("}");
+
 }/*}}}*/
 bool parser::_while () {/*{{{*/
     return false;
 }/*}}}*/
 bool parser::_return () {/*{{{*/
-    text("return");   
-    expression();
+    if (!expression()) return false;
     text(";");   
     return true;
 }/*}}}*/
@@ -203,6 +247,7 @@ bool parser::_not () {/*{{{*/
 }/*}}}*/
 bool parser::relational () {/*{{{*/
 
+    /*
     do {
         if (!sum()) return false;
 
@@ -219,7 +264,8 @@ bool parser::relational () {/*{{{*/
 
         break;
 
-    } while (true);
+    } while (true);*/
+    sum();
 
     return true;
 }/*}}}*/

@@ -35,13 +35,16 @@ void test_parser () {
         program, "Valid function with one declaration.");
     alp("void one () { int i, j; }", true,
         program, "Valid function with two declaration.");
+    alp("void one () { int i = 1, j = 1; }", true,
+        program, "Valid function with two initialization.");
 
     alp("void one () { return 1 + 2; }", true,
         program, "Valid function with return expression");
 
-    alp("i = 0;", true, assign, "Valid assignment");
-
-    alp("if (x < 0)", true, _if, "Basic if statement");
+    alp("if (true) {}", true, _if, "If statement");
+    alp("if (true) {} else {}", true, _if, "If-Else statement");
+    alp("if (true) { int i; }", true, _if, "If statement with body");
+    alp("if (true) { if (false) {} }", true, _if, "Nested If");
 
     // error causing expressions 
     alp("1*2+", false, program, "Malformed Expression");
