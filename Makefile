@@ -48,7 +48,8 @@ watch: ; @while \
     inotifywait -qre close_write \
     --format "`echo -e '\a\n%T \033[0;34m%f\033[0;0m modified...'` " \
     --timefmt "`echo -e '\033[0;32m%r\033[0;0m'`" \
-    ./include ./tests; \
+    ./include ./tests \
+    --exclude runner; \
     do echo && make unit > /dev/null; done
 
 #test: unit lexer
