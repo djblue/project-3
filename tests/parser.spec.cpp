@@ -42,16 +42,14 @@ void test_parser () {
         program, "Valid function with return expression");
 
     alp("if (true) {}", true, _if, "If statement");
-    alp("if (true) {} else {}", true, _if, "If-Else statement");
     alp("if (true) { int i; }", true, _if, "If statement with body");
     alp("if (true) { if (false) {} }", true, _if, "Nested If");
 
-    // error causing expressions 
-    alp("1*2+", false, program, "Malformed Expression");
 
     end();
 
     title("Testing Expressions");
+
 
     alp("0", true, expression, "0 is a valid expression");
 
@@ -79,6 +77,14 @@ void test_parser () {
     alp("1%2", true, product, "We can mod 2 numbers.");
 
     alp("3 % 2 == 1", true, expression, "Complex expression.");
+    alp("a % b == 1 || a % b == 0", true, expression, "Complex expression.");
+
+    end();
+
+    title("Testing Error Expressions");
+
+    alp("1*2+", false, sum, "Malformed Expression");
+    alp("a%b%", false, sum, "Malformed Expression");
 
     end();
 

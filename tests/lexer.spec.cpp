@@ -8,6 +8,12 @@ void test_lexer () {
     title("Testing the Splitter");
 
     /* splitting tests */
+    assert(l.split("a%b").size() == 3,
+        "it can split around operators.");
+    assert(l.split("a b").size() == 2,
+        "it can split around white space.");
+    assert(l.split("a%b == 0 && a%c == 0").size() == 14,
+        "it can split around complex expressions.");
     assert(l.split("\"hello, world\"").size() == 1,
         "it can split strings with white space.");
     assert(l.split("hello \"hello, world\" hello").size() == 3,
