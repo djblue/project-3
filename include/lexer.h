@@ -61,6 +61,7 @@ const char *keywords[] = {
     "for",
     "return",
     "int",
+    "integer",
     "float",
     "void",
     "char",
