@@ -9,12 +9,12 @@
 #include "lexer.h"
 
 #define text(s) { \
-    if (shift().text != s) { error(s); return false; } \
-    /*else { cerr << "found " << s << endl; }*/}
+    if (shift().text != s) { unshift(); error(s); return false; } \
+    else { cerr << "found " << s << endl; }}
 
 #define type(t) { \
-    if (shift().type != t) { error(type_names[t]); return false; } \
-    /*else { cerr << "found " << type_names[t] << endl; }*/}
+    if (shift().type != t) { unshift(); error(type_names[t]); return false; } \
+    else { cerr << "found " << type_names[t] << endl; }}
 
 using namespace std;
 
@@ -86,7 +86,6 @@ void parser::error (string str) {
     e.expected = str;
     e.recieved = tokens[current_token-1];
     errors.push_back(e);
-    /*
     cerr << "Line " 
          << tokens[current_token-1].line 
          << ": expected "
@@ -94,13 +93,18 @@ void parser::error (string str) {
          << " recieved \'" 
          << tokens[current_token-1].text 
          << "\'"<< endl;
-         */
 }
 void parser::error_recovery() {
     int line = peek().line;
     while (tokens.size() > 0) {
-        if (peek().text != ";" && line == peek().line) shift();
-        else { unshift(); break;}
+        if (peek().text == ";"){
+            shift();
+            break;
+        } else if (line < peek().line) {
+            break; 
+        } else {
+            shift();
+        }
     }
 }
 string parser::error_report() {
@@ -189,7 +193,9 @@ bool parser::function () {
     parameters();
     text(")");
     text("{");
-    while(line());
+    while(peek().text != "}") {
+        line();
+    }
     text("}");
     return true;
 }
@@ -223,6 +229,7 @@ bool parser::line () {
     }
 
     else if (next.type == KEYWORD) {
+        unshift();
         if (local()) return true;
     }
 
@@ -231,12 +238,10 @@ bool parser::line () {
         
         if (t.text == "=") {
             if (expression() && shift().text == ";") return true;
-            else {
-                unshift();
-                unshift();
-            }
         } else {
-            call();
+            unshift();
+            unshift();
+            if (call()) return true;
         }
     }
     unshift();
@@ -246,12 +251,12 @@ bool parser::line () {
     return false;
 }
 bool parser::local () {
+    type(KEYWORD);
     do {
         type(ID);
-        if (shift().text == "=") {
+        if (peek().text == "=") {
+            shift();
             if(!expression()) return false;
-        } else {
-            unshift();
         }
     } while (shift().text == ",");
     unshift();
@@ -419,7 +424,7 @@ bool parser::terminal () {
             unshift();
             return false;
         }
-        //cerr << "found " << type_names[t] << endl;
+        cerr << "found " << type_names[t] << endl;
     }
     //cout << "END TERM" << endl; 
     return true;
