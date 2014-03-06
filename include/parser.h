@@ -212,6 +212,11 @@ bool parser::line () {
         if (_if()) return true;
     }
 
+    if (next.text == "while") {
+        unshift();
+        if (_while()) return true;
+    }
+
     else if (next.type == KEYWORD) {
         if (local()) return true;
     }
@@ -282,7 +287,18 @@ bool parser::_if () {
     return true;
 }
 bool parser::_while () {
-    
+    text("while");
+
+    text("(");
+    if (!expression()) return false;
+    text(")");
+    if (peek().text == "{") {
+        text("{");
+        while(line());
+        text("}");
+    } else {
+        line();
+    }
 }
 bool parser::_return () {
     if (!expression()) return false;
