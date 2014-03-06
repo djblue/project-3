@@ -1,8 +1,8 @@
-#include "../include/parser.h"
-#include "../include/test.h"
-
 #include <vector>
 #include <string>
+
+#include "../include/parser.h"
+#include "../include/test.h"
 
 // assert lex-parse macro
 #define alp(expr, state, rule, message) { \
@@ -15,11 +15,23 @@
     parser p(tokens); \
     assert(p.rule() == state, message); }
 
+// assert lex-parse error macro
+#define alpe(expr, x, rule, message) { \
+    lexer l; \
+    std::vector<std::string> split = l.split(expr); \
+    std::vector<std::string>::size_type i; \
+    std::vector<token> tokens; \
+    for (i = 0; i < split.size(); i++) \
+        tokens.push_back(l.lex(split[i])); \
+    parser p(tokens); \
+    assert(!p.rule() && p.errors.size() > 0 && \
+        p.errors[0].expected == x, message); }
+
 void test_parser () {
 
     try {
     
-    title("Testing the Parser");
+    __title("Testing the Parser");
 
     alp("",          true, program, "Empty string is a valid program.");
     alp("int i;",    true, program, "Valid global");
@@ -46,9 +58,9 @@ void test_parser () {
     alp("if (true) { if (false) {} }", true, _if, "Nested If");
 
 
-    end();
+    __end();
 
-    title("Testing Expressions");
+    __title("Testing Expressions");
 
 
     alp("0", true, expression, "0 is a valid expression");
@@ -79,17 +91,41 @@ void test_parser () {
     alp("3 % 2 == 1", true, expression, "Complex expression.");
     alp("a % b == 1 || a % b == 0", true, expression, "Complex expression.");
 
-    end();
+    __end();
 
-    title("Testing Error Expressions");
+    __title("Testing Errors");
+
+    {
+        parser p;
+        p.error(";");
+        assert(p.errors[0].expected == ";" && 
+            p.errors[0].recieved.type == UNDEFINED,
+            "Error reporting works.");
+    }
+
+    alpe("123", "type", program, 
+        "Error for no 'type' for global declaration.");
+
+    alpe("int i", ";", program, 
+        "Error for no ';' for global declaration.");
+
+    alpe("int int", "identifier", program, 
+        "Error for no 'identifier' for global declaration.");
+
+    alpe("int int", "identifier", program, 
+        "Error for no 'identifier' for global declaration.");
+
+    alpe("int", "identifier", program, 
+        "Error for no 'identifier' for global declaration.");
+
 
     alp("1*2+", false, sum, "Malformed Expression");
     alp("a%b%", false, sum, "Malformed Expression");
 
-    end();
+    __end();
 
     } catch (token t) {
-        end();
+        __end();
         std::cout << "ERROR: " << t.text << endl;
     }
 }

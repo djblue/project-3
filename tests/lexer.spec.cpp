@@ -1,11 +1,11 @@
-#include "../include/lexer.h"
 #include "../include/test.h"
+#include "../include/lexer.h"
 
 void test_lexer () {
 
     lexer l;
 
-    title("Testing the Splitter");
+    __title("Testing the Splitter");
 
     /* splitting tests */
     assert(l.split("a%b").size() == 3,
@@ -23,9 +23,9 @@ void test_lexer () {
     assert(l.split("\'\n hello, world\' world").size() == 2,
         "it can split around single quotes.");
 
-    end();
+    __end();
 
-    title("Testing the Lexer");
+    __title("Testing the Lexer");
 
     /* lexer tests */
     assert(l.lex("--").type == UNDEFINED,
@@ -73,5 +73,5 @@ void test_lexer () {
     assert(l.lex("\"hello").type == UNDEFINED,
         "is a broken string working.");
 
-    end();
+    __end();
 }
