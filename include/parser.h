@@ -9,11 +9,11 @@
 #include "lexer.h"
 
 #define text(s) { \
-    if (shift().text != s) { unshift(); error(s); return false; } \
+    if (shift().text != s) { status = false; unshift(); error(s); return false; } \
     else { cerr << "found " << s << endl; }}
 
 #define type(t) { \
-    if (shift().type != t) { unshift(); error(type_names[t]); return false; } \
+    if (shift().type != t) { status = false; unshift(); error(type_names[t]); return false; } \
     else { cerr << "found " << type_names[t] << endl; }}
 
 using namespace std;
@@ -39,6 +39,7 @@ private:
     token peek ();
     void unshift ();
 
+    bool status;
 
     // grammar rules
     bool program ();
@@ -120,6 +121,7 @@ string parser::error_report() {
 }
 
 parser::parser (vector<token> tokens) {
+    status = true;
     current_token = 0;
     this->tokens = tokens;
 }
@@ -152,19 +154,17 @@ void parser::unshift () {
     current_token--;
 }
 bool parser::parse () {
-
-    if (program() && current_token == tokens.size() - 1) {
-        return true;
-    } else {
-        return false;
-    }
+    program();
+    return status;
 }
 bool parser::program () {
+
+    bool status = true;
 
     if (tokens.size() == 0) {
         return true;
     }
-
+    
     while (current_token < tokens.size()) {
         if (shift().type != KEYWORD) return false;
         if (shift().type != ID) return false;
@@ -175,7 +175,7 @@ bool parser::program () {
         }
     }
 
-    return true;
+    return status;
 }
 bool parser::global () {
     while (shift().text == ",") {
@@ -411,11 +411,7 @@ bool parser::terminal () {
     //cout << "BEGIN TERM" << endl; 
     if (shift().text == "(") {
         expression();
-        if (shift().text != ")") {
-            error(")");
-            //cout << "ERROR: expected )" << endl; 
-            return false;
-        }
+        text(")");
     } else {
         unshift();
         types t = shift().type;
