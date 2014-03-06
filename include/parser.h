@@ -213,13 +213,13 @@ bool parser::line () {
         if (_while()) return true;
     }
 
-    else if (next.type == KEYWORD) {
-        if (local()) return true;
-    }
-
     else if (next.text == "return") {
         unshift();
         if (_return()) return true;
+    }
+
+    else if (next.type == KEYWORD) {
+        if (local()) return true;
     }
 
     else if (next.type == ID) {
