@@ -8,10 +8,10 @@
 #include "lexer.h"
 
 #define text(s) { \
-    if (shift().text != s) { unshift(); return false; } }
+    if (shift().text != s) { unshift(); error(s); return false; } }
 
 #define type(t) { \
-    if (shift().type != t) { unshift(); return false; } }
+    if (shift().type != t) { unshift(); error(type_names[t]); return false; } }
 
 using namespace std;
 
@@ -60,9 +60,14 @@ public:
     bool sign ();
 
     bool terminal ();
+    void error (string);
 
     friend void test_parser ();
 };
+void parser::error (string str) {
+    cout << "Line " << tokens[current_token].line << 
+        ": expected " << str << endl;
+}
 parser::parser (vector<token> tokens) {
     current_token = 0;
     this->tokens = tokens;
@@ -86,10 +91,10 @@ void parser::unshift () {
 bool parser::parse () {
 
     if (program() && current_token == tokens.size() - 1) {
-        //cout << "Parse Successful" << endl;
+        cout << "Parse Successful" << endl;
         return true;
     } else {
-        //cout << "Parse Failure" << endl;
+        cout << "Parse Failure" << endl;
         return false;
     }
 }
@@ -201,6 +206,7 @@ bool parser::_if () {
     text("{");
     text("}");
 
+    return true;
 }
 bool parser::_while () {
     return false;
