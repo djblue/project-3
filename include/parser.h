@@ -86,7 +86,6 @@ void parser::error (string str) {
     e.expected = str;
     e.recieved = tokens[current_token-1];
     errors.push_back(e);
-    /*
     cerr << "Line " 
          << tokens[current_token-1].line 
          << ": expected "
@@ -94,7 +93,6 @@ void parser::error (string str) {
          << " recieved \'" 
          << tokens[current_token-1].text 
          << "\'"<< endl;
-         */
 }
 
 string parser::error_report() {
@@ -220,6 +218,7 @@ bool parser::line () {
     }
 
     else if (next.text == "return") {
+        unshift();
         if (_return()) return true;
     }
 
@@ -299,6 +298,7 @@ bool parser::_while () {
     }
 }
 bool parser::_return () {
+    text("return");
     if (!expression()) return false;
     text(";");   
     return true;
