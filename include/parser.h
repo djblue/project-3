@@ -10,11 +10,11 @@
 
 #define text(s) { \
     if (shift().text != s) { error(s); return false; } \
-    else { cerr << "found " << s << endl; }}
+    /*else { cerr << "found " << s << endl; }*/}
 
 #define type(t) { \
     if (shift().type != t) { error(type_names[t]); return false; } \
-    else { cerr << "found " << type_names[t] << endl; }}
+    /*else { cerr << "found " << type_names[t] << endl; }*/}
 
 using namespace std;
 
@@ -86,6 +86,7 @@ void parser::error (string str) {
     e.expected = str;
     e.recieved = tokens[current_token-1];
     errors.push_back(e);
+    /*
     cerr << "Line " 
          << tokens[current_token-1].line 
          << ": expected "
@@ -93,6 +94,7 @@ void parser::error (string str) {
          << " recieved \'" 
          << tokens[current_token-1].text 
          << "\'"<< endl;
+         */
 }
 
 string parser::error_report() {
@@ -191,13 +193,9 @@ bool parser::function () {
 }
 bool parser::parameters () {
     do {
-        if (shift().type != KEYWORD) {
-            unshift();
-            return false;
-        }
-        if (shift().type != ID) {
-            unshift();
-            return false;
+        if (peek().text != ")") {
+            type(KEYWORD);
+            type(ID);
         }
     } while (shift().text == ",");
     unshift();
@@ -413,7 +411,7 @@ bool parser::terminal () {
             unshift();
             return false;
         }
-        cerr << "found " << type_names[t] << endl;
+        //cerr << "found " << type_names[t] << endl;
     }
     //cout << "END TERM" << endl; 
     return true;
