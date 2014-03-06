@@ -32,7 +32,8 @@ private:
     };
     vector<error> errors;
     vector<error>::iterator it;
-
+    void error (string);
+    void error_recovery();
 
     token shift ();
     token peek ();
@@ -67,7 +68,6 @@ private:
     bool sign ();
 
     bool terminal ();
-    void error (string);
 
 public: 
 
@@ -86,6 +86,7 @@ void parser::error (string str) {
     e.expected = str;
     e.recieved = tokens[current_token-1];
     errors.push_back(e);
+    /*
     cerr << "Line " 
          << tokens[current_token-1].line 
          << ": expected "
@@ -93,8 +94,15 @@ void parser::error (string str) {
          << " recieved \'" 
          << tokens[current_token-1].text 
          << "\'"<< endl;
+         */
 }
-
+void parser::error_recovery() {
+    int line = peek().line;
+    while (tokens.size() > 0) {
+        if (peek().text != ";" && line == peek().line) shift();
+        else { unshift(); break;}
+    }
+}
 string parser::error_report() {
     stringstream ss;
     for (it = errors.begin(); it != errors.end(); it++) {
@@ -102,9 +110,7 @@ string parser::error_report() {
            << (*it).recieved.line 
            << ": expected "
            << (*it).expected 
-           << " recieved \'" 
-           << (*it).recieved.line 
-           << "\'"<< endl;
+           << endl;
     }
     return ss.str();
 }
@@ -144,10 +150,8 @@ void parser::unshift () {
 bool parser::parse () {
 
     if (program() && current_token == tokens.size() - 1) {
-        cout << "Parse Successful" << endl;
         return true;
     } else {
-        cout << "Parse Failure" << endl;
         return false;
     }
 }
@@ -237,6 +241,8 @@ bool parser::line () {
     }
     unshift();
 
+    error_recovery();
+
     return false;
 }
 bool parser::local () {
@@ -296,6 +302,8 @@ bool parser::_while () {
     } else {
         line();
     }
+
+    return true;
 }
 bool parser::_return () {
     text("return");
