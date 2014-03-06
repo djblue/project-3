@@ -2,6 +2,7 @@
 #define PARSER_H
 
 #include <string>
+#include <sstream>
 #include <iostream>
 #include <vector>
 
@@ -25,15 +26,18 @@ private:
     vector<token> tokens;
     vector<token>::size_type current_token;
 
-public: 
-    parser () {};
-    parser (vector<token> tokens);
+    struct error {
+        string expected;
+        token  recieved;
+    };
+    vector<error> errors;
+    vector<error>::iterator it;
+
 
     token shift ();
     token peek ();
     void unshift ();
 
-    bool parse ();
 
     // grammar rules
     bool program ();
@@ -65,9 +69,22 @@ public:
     bool terminal ();
     void error (string);
 
+public: 
+
+    parser () {};
+    parser (vector<token> tokens);
+
+    bool parse ();
+    string error_report();
+
     friend void test_parser ();
 };
+
+// Report the errors son, don't be a fool.
 void parser::error (string str) {
+    struct error e;
+    e.expected = str;
+    e.recieved = tokens[current_token-1];
     cerr << "Line " 
          << tokens[current_token-1].line 
          << ": expected "
@@ -76,6 +93,21 @@ void parser::error (string str) {
          << tokens[current_token-1].text 
          << "\'"<< endl;
 }
+
+string parser::error_report() {
+    stringstream ss;
+    for (it = errors.begin(); it != errors.end(); it++) {
+        ss << "Line " 
+           << (*it).recieved.line 
+           << ": expected "
+           << (*it).expected 
+           << " recieved \'" 
+           << (*it).recieved.line 
+           << "\'"<< endl;
+    }
+    return ss.str();
+}
+
 parser::parser (vector<token> tokens) {
     current_token = 0;
     this->tokens = tokens;
@@ -227,8 +259,13 @@ bool parser::_if () {
     text("(");
     if (!expression()) return false;
     text(")");
-    text("{");
-    text("}");
+    if (peek().text == "{") {
+        text("{");
+        while(line());
+        text("}");
+    } else {
+        line();
+    }
 
     return true;
 }
