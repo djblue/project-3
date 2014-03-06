@@ -85,6 +85,7 @@ void parser::error (string str) {
     struct error e;
     e.expected = str;
     e.recieved = tokens[current_token-1];
+    errors.push_back(e);
     cerr << "Line " 
          << tokens[current_token-1].line 
          << ": expected "
@@ -267,10 +268,21 @@ bool parser::_if () {
         line();
     }
 
+    if (peek().text == "else") {
+        text("else");
+        if (peek().text == "{") {
+            text("{");
+            while(line());
+            text("}");
+        } else {
+            line();
+        }
+    }
+
     return true;
 }
 bool parser::_while () {
-    return false;
+    
 }
 bool parser::_return () {
     if (!expression()) return false;
@@ -280,6 +292,7 @@ bool parser::_return () {
 bool parser::call() {
     type(ID);
     text ("(");
+
     do {
         if (!expression()) {
             return false;
