@@ -17,7 +17,7 @@ using namespace std;
 
 // This class implements a syntactical analyzer.
 // It is a predictive-recursive-decent parser.
-class parser {/*{{{*/
+class parser {
 
 private:
     vector<token> tokens;
@@ -62,12 +62,12 @@ public:
     bool terminal ();
 
     friend void test_parser ();
-};/*}}}*/
-parser::parser (vector<token> tokens) {/*{{{*/
+};
+parser::parser (vector<token> tokens) {
     current_token = 0;
     this->tokens = tokens;
-}/*}}}*/
-token parser::shift () {/*{{{*/
+}
+token parser::shift () {
     if (current_token < tokens.size()) {
         token t = tokens[current_token];
         current_token++;
@@ -79,11 +79,11 @@ token parser::shift () {/*{{{*/
         //cout << "(" << tokens.size() << ","<< current_token << ")" << endl;
         return t;
     }
-}/*}}}*/
-void parser::unshift () {/*{{{*/
+}
+void parser::unshift () {
     current_token--;
-}/*}}}*/
-bool parser::parse () {/*{{{*/
+}
+bool parser::parse () {
 
     if (program() && current_token == tokens.size() - 1) {
         //cout << "Parse Successful" << endl;
@@ -92,8 +92,8 @@ bool parser::parse () {/*{{{*/
         //cout << "Parse Failure" << endl;
         return false;
     }
-}/*}}}*/
-bool parser::program () {/*{{{*/
+}
+bool parser::program () {
 
     if (tokens.size() == 0) {
         return true;
@@ -106,8 +106,8 @@ bool parser::program () {/*{{{*/
     }
 
     return true;
-}/*}}}*/
-bool parser::global () {/*{{{*/
+}
+bool parser::global () {
     while (shift().text == ",") {
         if (shift().type != ID)  return false;
     }
@@ -117,8 +117,8 @@ bool parser::global () {/*{{{*/
         return false;
     }
     return true;
-}/*}}}*/
-bool parser::function () {/*{{{*/
+}
+bool parser::function () {
     text("(");
     parameters();
     text(")");
@@ -126,8 +126,8 @@ bool parser::function () {/*{{{*/
     while(line());
     text("}");
     return true;
-}/*}}}*/
-bool parser::parameters () {/*{{{*/
+}
+bool parser::parameters () {
     do {
         if (shift().type != KEYWORD) {
             unshift();
@@ -140,8 +140,8 @@ bool parser::parameters () {/*{{{*/
     } while (shift().text == ",");
     unshift();
     return true;
-}/*}}}*/
-bool parser::line () {/*{{{*/
+}
+bool parser::line () {
 
     token next = shift();
     
@@ -175,8 +175,8 @@ bool parser::line () {/*{{{*/
         return true;
 
     return false;
-}/*}}}*/
-bool parser::local () {/*{{{*/
+}
+bool parser::local () {
     do {
         type(ID);
         if (shift().text == "=") {
@@ -188,11 +188,11 @@ bool parser::local () {/*{{{*/
     unshift();
     text(";");
     return true;
-}/*}}}*/
-bool parser::assign () {/*{{{*/
+}
+bool parser::assign () {
     return false; 
-}/*}}}*/
-bool parser::_if () {/*{{{*/
+}
+bool parser::_if () {
     
     text("if");
 
@@ -201,16 +201,16 @@ bool parser::_if () {/*{{{*/
     text("{");
     text("}");
 
-}/*}}}*/
-bool parser::_while () {/*{{{*/
+}
+bool parser::_while () {
     return false;
-}/*}}}*/
-bool parser::_return () {/*{{{*/
+}
+bool parser::_return () {
     if (!expression()) return false;
     text(";");   
     return true;
-}/*}}}*/
-bool parser::call() {/*{{{*/
+}
+bool parser::call() {
     type(ID);
     text ("(");
     do {
@@ -222,30 +222,30 @@ bool parser::call() {/*{{{*/
     text(")");
     text(";");
     return true;
-}/*}}}*/
-bool parser::expression () {/*{{{*/
+}
+bool parser::expression () {
     do {
         _and(); 
     } while (shift().text == "|");
     unshift();
     return true;
-}/*}}}*/
-bool parser::_and () {/*{{{*/
+}
+bool parser::_and () {
     do {
         _not(); 
     } while (shift().text == "&");
     unshift();
     return true;
-}/*}}}*/
-bool parser::_not () {/*{{{*/
+}
+bool parser::_not () {
     if (shift().text != "!") {
         unshift();
     }
     if (!relational()) return false;;
 
     return true;
-}/*}}}*/
-bool parser::relational () {/*{{{*/
+}
+bool parser::relational () {
 
     /*
     do {
@@ -268,8 +268,8 @@ bool parser::relational () {/*{{{*/
     sum();
 
     return true;
-}/*}}}*/
-bool parser::sum () {/*{{{*/
+}
+bool parser::sum () {
     do {
         //cout << "BEGIN ADD" << endl; 
         if (!product()) return false;
@@ -284,8 +284,8 @@ bool parser::sum () {/*{{{*/
     } while (true);
 
     return true;
-}/*}}}*/
-bool parser::product () {/*{{{*/
+}
+bool parser::product () {
     do {
         //cout << "BEGIN MUL" << endl; 
         if (!sign()) return false;
@@ -302,8 +302,8 @@ bool parser::product () {/*{{{*/
     } while (true);
 
     return true;
-}/*}}}*/
-bool parser::sign () {/*{{{*/
+}
+bool parser::sign () {
     //cout << "BEGIN NEG" << endl; 
     if (shift().text == "-") {
         if (!terminal()) return false;
@@ -313,8 +313,8 @@ bool parser::sign () {/*{{{*/
     }
     //cout << "END NEG" << endl; 
     return true;
-}/*}}}*/
-bool parser::terminal () {/*{{{*/
+}
+bool parser::terminal () {
     //cout << "BEGIN TERM" << endl; 
     if (shift().text == "(") {
         call();
@@ -332,6 +332,6 @@ bool parser::terminal () {/*{{{*/
     }
     //cout << "END TERM" << endl; 
     return true;
-}/*}}}*/
+}
 
 #endif // PARSER_H
