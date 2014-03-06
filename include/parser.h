@@ -8,10 +8,12 @@
 #include "lexer.h"
 
 #define text(s) { \
-    if (shift().text != s) { unshift(); error(s); return false; } }
+    if (shift().text != s) { error(s); return false; } \
+    else { cerr << "found " << s << endl; }}
 
 #define type(t) { \
-    if (shift().type != t) { unshift(); error(type_names[t]); return false; } }
+    if (shift().type != t) { error(type_names[t]); return false; } \
+    else { cerr << "found " << type_names[t] << endl; }}
 
 using namespace std;
 
@@ -28,6 +30,7 @@ public:
     parser (vector<token> tokens);
 
     token shift ();
+    token peek ();
     void unshift ();
 
     bool parse ();
@@ -65,8 +68,13 @@ public:
     friend void test_parser ();
 };
 void parser::error (string str) {
-    cout << "Line " << tokens[current_token].line << 
-        ": expected " << str << endl;
+    cerr << "Line " 
+         << tokens[current_token-1].line 
+         << ": expected "
+         << str 
+         << " recieved \'" 
+         << tokens[current_token-1].text 
+         << "\'"<< endl;
 }
 parser::parser (vector<token> tokens) {
     current_token = 0;
@@ -76,6 +84,18 @@ token parser::shift () {
     if (current_token < tokens.size()) {
         token t = tokens[current_token];
         current_token++;
+        return t;
+    } else {
+        token t;
+        t.type =  UNDEFINED;
+        t.text = "#";
+        //cout << "(" << tokens.size() << ","<< current_token << ")" << endl;
+        return t;
+    }
+}
+token parser::peek () {
+    if (current_token < tokens.size()) {
+        token t = tokens[current_token];
         return t;
     } else {
         token t;
@@ -107,7 +127,11 @@ bool parser::program () {
     while (current_token < tokens.size()) {
         if (shift().type != KEYWORD) return false;
         if (shift().type != ID) return false;
-        if (!global() && !function()) return false;
+        if (peek().text == "(") {
+            function();
+        } else {
+            global();
+        }
     }
 
     return true;
@@ -155,15 +179,15 @@ bool parser::line () {
         if (_if()) return true;
     }
 
-    if (next.type == KEYWORD) {
+    else if (next.type == KEYWORD) {
         if (local()) return true;
     }
 
-    if (next.text == "return") {
+    else if (next.text == "return") {
         if (_return()) return true;
     }
 
-    if (next.type == ID) {
+    else if (next.type == ID) {
         token t = shift();
         
         if (t.text == "=") {
@@ -172,12 +196,11 @@ bool parser::line () {
                 unshift();
                 unshift();
             }
+        } else {
+            call();
         }
     }
     unshift();
-
-    if (local() || assign() || _if() || _while() || _return() || call())
-        return true;
 
     return false;
 }
@@ -202,6 +225,7 @@ bool parser::_if () {
     text("if");
 
     text("(");
+    if (!expression()) return false;
     text(")");
     text("{");
     text("}");
@@ -220,9 +244,10 @@ bool parser::call() {
     type(ID);
     text ("(");
     do {
-        expression();
+        if (!expression()) {
+            return false;
+        }
     } while (shift().text == ",");
-
     unshift();
 
     text(")");
@@ -231,14 +256,14 @@ bool parser::call() {
 }
 bool parser::expression () {
     do {
-        _and(); 
+        if (!_and()) return false; 
     } while (shift().text == "|");
     unshift();
     return true;
 }
 bool parser::_and () {
     do {
-        _not(); 
+        if (!_not()) return false; 
     } while (shift().text == "&");
     unshift();
     return true;
@@ -253,29 +278,12 @@ bool parser::_not () {
 }
 bool parser::relational () {
 
-    /*
-    do {
-        if (!sum()) return false;
-
-        if (shift().text == "<" && shift().text == "=") continue;
-        unshift(); unshift();
-        if (shift().text == ">" && shift().text == "=") continue;
-        unshift(); unshift();
-        if (shift().text == ">") continue; unshift();
-        if (shift().text == "<") continue; unshift();
-        if (shift().text == "!" && shift().text == "=") continue;
-        unshift(); unshift();
-        if (shift().text == "=" && shift().text == "=") continue;
-        unshift(); unshift();
-
-        break;
-
-    } while (true);*/
-    sum();
+    if (!sum()) return false ;
 
     return true;
 }
 bool parser::sum () {
+
     do {
         //cout << "BEGIN ADD" << endl; 
         if (!product()) return false;
@@ -312,7 +320,9 @@ bool parser::product () {
 bool parser::sign () {
     //cout << "BEGIN NEG" << endl; 
     if (shift().text == "-") {
-        if (!terminal()) return false;
+        if (!terminal()) {
+            return false;
+        }
     } else {
         unshift();
         if (!terminal()) return false;
@@ -323,8 +333,9 @@ bool parser::sign () {
 bool parser::terminal () {
     //cout << "BEGIN TERM" << endl; 
     if (shift().text == "(") {
-        call();
+        expression();
         if (shift().text != ")") {
+            error(")");
             //cout << "ERROR: expected )" << endl; 
             return false;
         }
@@ -332,9 +343,11 @@ bool parser::terminal () {
         unshift();
         types t = shift().type;
         if (t != INTEGER && t != CHAR && t != STRING && t != FLOAT && t != ID) {
-            //cout << "ERROR: expected INTEGER" << endl; 
+            error ("value or identifier");
+            unshift();
             return false;
         }
+        cerr << "found " << type_names[t] << endl;
     }
     //cout << "END TERM" << endl; 
     return true;
