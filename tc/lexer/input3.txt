@@ -1,0 +1,17 @@
+int fac (int n) {
+    if (true) {
+        return 1;
+    } else {
+        return n*fac(n-1);
+    }
+}
+
+int main () {
+
+    int input;
+    printf("Please enter a number >> ");
+
+    printf("%d! = %d\n", input, fac(input));
+
+    return 0;
+}
