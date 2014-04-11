@@ -15,7 +15,7 @@ ASSIGN_FILES=*
 
 # setup compiler variables
 CC=g++
-CFLAGS=-c -Wall
+CFLAGS=-c -g -Wall
 LDFLAGS=
 
 # setup source files and executable name
@@ -52,19 +52,28 @@ watch: ; @while \
     --exclude runner; \
     do echo && make unit > /dev/null; done
 
-#test: unit lexer
-test: unit
+test: unit lexer
+#test: unit
 
 # run all tests
 unit: ; @$(MAKE) -sC tests
 
 lexer: ltc1 ltc2 ltc3 ltc4
 
-# run all test cases
-ltc%: tc/input%.txt
+# run all test cases for lexer
+ltc%: tc/lexer/input%.txt
 	@rm -f input.txt
-	@cp tc/input$*.txt input.txt
+	@cp tc/lexer/input$*.txt input.txt
 	@./run -l input.txt output.txt
-	@diff -bc output.txt tc/output$*.txt && echo "PASSED $*"
+	@diff -bc output.txt tc/lexer/output$*.txt && echo "PASSED $*"
 	@rm -f input.txt output.txt
 
+parser: ptc2
+
+# run all test cases for parser
+ptc%: tc/parser/input%.txt
+	@rm -f input.txt
+	@cp tc/parser/input$*.txt input.txt
+	@./run -p input.txt output.txt
+	@diff -bc output.txt tc/parser/output$*.txt && echo "PASSED $*"
+	@rm -f input.txt output.txt

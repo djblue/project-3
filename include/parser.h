@@ -6,15 +6,19 @@
 #include <iostream>
 #include <vector>
 
+#include "error.h"
 #include "lexer.h"
+#include "semantic.h"
 
 #define text(s) { \
-    if (shift().text != s) { status = false; unshift(); error(s); return false; } \
-    else { cerr << "found " << s << endl; }}
+    if (peek().text != s) { status = false; e.report(peek(), s); return false; } \
+    else { shift(); /*cerr << "found " << s << endl; */}}
 
 #define type(t) { \
-    if (shift().type != t) { status = false; unshift(); error(type_names[t]); return false; } \
-    else { cerr << "found " << type_names[t] << endl; }}
+    if (peek().type != t) { status = false; e.report(peek(), type_names[t]); return false; } \
+    else if (peek().type == ID) { current_id = shift().text; } \
+    else if (peek().type == KEYWORD) { current_keyword = shift().text; } \
+    else { shift(); /*cerr << "found " << type_names[t] << endl;*/ }}
 
 using namespace std;
 
@@ -23,17 +27,14 @@ using namespace std;
 class parser {
 
 private:
+    semantic sm;
+    string current_scope, current_id, current_keyword;
+    int line_number;
     vector<token> tokens;
     vector<token>::size_type current_token;
 
-    struct error {
-        string expected;
-        token  recieved;
-    };
-    vector<error> errors;
-    vector<error>::iterator it;
-    void error (string);
-    void error_recovery();
+    error e;
+    void error_recovery(string end);
 
     token shift ();
     token peek ();
@@ -50,6 +51,7 @@ private:
 
     bool line ();
 
+    bool block ();
     bool local ();
     bool assign ();
     bool _if ();
@@ -81,25 +83,10 @@ public:
     friend void test_parser ();
 };
 
-// Report the errors son, don't be a fool.
-void parser::error (string str) {
-    struct error e;
-    e.expected = str;
-    e.recieved = tokens[current_token-1];
-    errors.push_back(e);
-    cerr << "Line " 
-         << tokens[current_token-1].line 
-         << ": expected "
-         << str 
-         << " recieved \'" 
-         << tokens[current_token-1].text 
-         << "\'"<< endl;
-}
-void parser::error_recovery() {
+void parser::error_recovery(string end) {
     int line = peek().line;
-    while (tokens.size() > 0) {
-        if (peek().text == ";"){
-            shift();
+    while (tokens.size() > current_token) {
+        if (peek().text == end){
             break;
         } else if (line < peek().line) {
             break; 
@@ -108,44 +95,28 @@ void parser::error_recovery() {
         }
     }
 }
-string parser::error_report() {
-    stringstream ss;
-    for (it = errors.begin(); it != errors.end(); it++) {
-        ss << "Line " 
-           << (*it).recieved.line 
-           << ": expected "
-           << (*it).expected 
-           << endl;
-    }
-    return ss.str();
-}
 
 parser::parser (vector<token> tokens) {
     status = true;
     current_token = 0;
+    line_number = 0;
     this->tokens = tokens;
 }
 token parser::shift () {
-    if (current_token < tokens.size()) {
-        token t = tokens[current_token];
-        current_token++;
-        return t;
-    } else {
-        token t;
-        t.type =  UNDEFINED;
-        t.text = "#";
-        //cout << "(" << tokens.size() << ","<< current_token << ")" << endl;
-        return t;
-    }
+    token t = peek();
+    current_token++;
+    return t;
 }
 token parser::peek () {
     if (current_token < tokens.size()) {
         token t = tokens[current_token];
+        line_number = t.line;
         return t;
     } else {
         token t;
-        t.type =  UNDEFINED;
-        t.text = "#";
+        t.line = line_number;
+        t.type = UNDEFINED;
+        t.text = "";
         //cout << "(" << tokens.size() << ","<< current_token << ")" << endl;
         return t;
     }
@@ -160,18 +131,23 @@ bool parser::parse () {
 bool parser::program () {
 
     bool status = true;
+    current_scope = "global"; // set default scope as global
 
     if (tokens.size() == 0) {
         return true;
     }
     
     while (current_token < tokens.size()) {
-        if (shift().type != KEYWORD) return false;
-        if (shift().type != ID) return false;
+        type(KEYWORD);
+        type(ID);
         if (peek().text == "(") {
-            function();
+            if (!function()) {
+                status = false;
+            }
         } else {
-            global();
+            if (!global()) {
+                status = false;
+            }
         }
     }
 
@@ -179,22 +155,36 @@ bool parser::program () {
 }
 bool parser::global () {
     while (shift().text == ",") {
-        if (shift().type != ID)  return false;
+        sm.table.insert(current_id, current_keyword, current_scope);
+        type(ID);
     }
+    sm.table.insert(current_id, current_keyword, current_scope);
     unshift();
-    if (shift().text != ";")  {
-        unshift();
+    if (peek().text != ";")  {
+        error_recovery(";");
         return false;
     }
+    shift();
     return true;
 }
 bool parser::function () {
+    bool status = true;
     text("(");
-    parameters();
+    if (!parameters()) {
+        error_recovery(")");
+        status = false;
+    }
     text(")");
+    status = status && block();
+    return status;
+}
+bool parser::block () {
     text("{");
     while(peek().text != "}") {
-        line();
+        if (peek().text == "") break;
+        if (!line()) {
+            return false;
+        }
     }
     text("}");
     return true;
@@ -218,7 +208,7 @@ bool parser::line () {
         if (_if()) return true;
     }
 
-    if (next.text == "while") {
+    else if (next.text == "while") {
         unshift();
         if (_while()) return true;
     }
@@ -244,9 +234,10 @@ bool parser::line () {
             if (call()) return true;
         }
     }
+
     unshift();
 
-    error_recovery();
+    error_recovery(";");
 
     return false;
 }
@@ -268,15 +259,17 @@ bool parser::assign () {
 }
 bool parser::_if () {
     
+    bool status = true;
     text("if");
 
     text("(");
-    if (!expression()) return false;
+    if (!expression()) {
+        error_recovery(")");
+        status = false;
+    }
     text(")");
     if (peek().text == "{") {
-        text("{");
-        while(line());
-        text("}");
+        if (!block()) return false;
     } else {
         line();
     }
@@ -284,31 +277,36 @@ bool parser::_if () {
     if (peek().text == "else") {
         text("else");
         if (peek().text == "{") {
-            text("{");
-            while(line());
-            text("}");
+            if (!block()) return false;
         } else {
             line();
         }
     }
 
-    return true;
+    return status;
 }
 bool parser::_while () {
+
+    bool status = true;;
+
     text("while");
 
     text("(");
-    if (!expression()) return false;
+    if (!expression()) {
+        error_recovery(")");
+        status = false;
+    }
     text(")");
-    if (peek().text == "{") {
-        text("{");
-        while(line());
-        text("}");
+
+    if (peek().text == ";") {
+        return true;
+    } else if (peek().text == "{") {
+        if (!block()) return false;
     } else {
-        line();
+        if (!line()) return false;
     }
 
-    return true;
+    return status;
 }
 bool parser::_return () {
     text("return");
@@ -317,11 +315,14 @@ bool parser::_return () {
     return true;
 }
 bool parser::call() {
+    bool status = true;
     type(ID);
     text ("(");
 
     do {
         if (!expression()) {
+            error_recovery(")");
+            shift();
             return false;
         }
     } while (shift().text == ",");
@@ -329,7 +330,7 @@ bool parser::call() {
 
     text(")");
     text(";");
-    return true;
+    return status;
 }
 bool parser::expression () {
     do {
@@ -355,7 +356,16 @@ bool parser::_not () {
 }
 bool parser::relational () {
 
-    if (!sum()) return false ;
+    do {
+        if (!sum()) return false;
+
+        if (shift().text == "<") continue;
+        unshift();
+        if (shift().text == ">") continue;
+        unshift();
+
+        break;
+    } while (true);
 
     return true;
 }
@@ -410,17 +420,20 @@ bool parser::sign () {
 bool parser::terminal () {
     //cout << "BEGIN TERM" << endl; 
     if (shift().text == "(") {
-        expression();
+        if (!expression()) return false;
         text(")");
     } else {
         unshift();
-        types t = shift().type;
-        if (t != INTEGER && t != CHAR && t != STRING && t != FLOAT && t != ID) {
-            error ("value or identifier");
-            unshift();
+        token t = peek();
+        if (t.type != INTEGER && t.type != HEXADECIMAL && t.type != OCTAL
+        && t.type != CHAR &&
+        t.type != STRING && t.type != FLOAT && t.type != ID) {
+            e.report (t, string("value or identifier"));
             return false;
+        } else {
+            shift();
         }
-        cerr << "found " << type_names[t] << endl;
+        //cerr << "found " << type_names[t] << endl;
     }
     //cout << "END TERM" << endl; 
     return true;
