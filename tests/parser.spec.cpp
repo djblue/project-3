@@ -147,26 +147,23 @@ void test_parser () {
     // testing global declaration
     alpe("int i", ";", "", program, 
         "Error for no ';' for global declaration.");
-
-/*
-
-    alpe("123", "KEYWORD", "INTEGER",  program, 
+    alpe("123", "KEYWORD", "123",  program, 
         "Error for no 'type' for global declaration.");
-
-    alpe("int int", "identifier", program, 
+    alpe("int int", "IDENTIFIER", "int", program, 
+        "Error for no 'identifier' for global declaration.");
+    alpe("int", "IDENTIFIER", "", program, 
         "Error for no 'identifier' for global declaration.");
 
-    alpe("int int", "identifier", program, 
-        "Error for no 'identifier' for global declaration.");
+    // bad expressions
+    alpe("1*2+", "value or identifier", "", 
+        expression, "Malformed Expression");
+    alpe("1**2+", "value or identifier", "*", 
+        expression, "Malformed Expression");
+    alpe("a%b%", "value or identifier", "",
+        expression, "Malformed Expression");
+    alpe("--", "value or identifier", "-",
+        expression, "Malformed Expression");
 
-    alpe("int", "identifier", program, 
-        "Error for no 'identifier' for global declaration.");
-
-
-    alp("1*2+", false, sum, "Malformed Expression");
-    alp("a%b%", false, sum, "Malformed Expression");
-
-*/
     __end();
 
     } catch (token t) {
