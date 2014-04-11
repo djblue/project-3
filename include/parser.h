@@ -171,17 +171,13 @@ bool parser::program () {
         type(KEYWORD);
         type(ID);
         if (peek().text == "(") {
-            if (!function()) {
-                status = false;
-            }
+            function();
         } else {
-            if (!global()) {
-                status = false;
-            }
+            global();
         }
     }
 
-    return status;
+    return errors.size() == 0;
 }
 bool parser::global () {
     while (shift().text == ",") {
@@ -191,6 +187,7 @@ bool parser::global () {
     sm.table.insert(current_id, current_keyword, current_scope);
     unshift();
     if (peek().text != ";")  {
+        report(peek(), ";");
         error_recovery(";");
         return false;
     }

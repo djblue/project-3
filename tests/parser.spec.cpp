@@ -52,6 +52,15 @@ void test_parser () {
 
     alp("void one () { return i + j; }", true,
         program, "Valid function with return expression");
+        
+    alp("int one () { return one(); }", true,
+        program, "function with return function call.");
+
+    alp("int fac (int n) { "
+        "if (n<1) return 1;"
+        "else return n*fac(n-1); }"
+    , true,
+    program, "factorial function!!!");
 
     alp("hello()", true,  call, "valid call");
     alp("hello((there)+(your))", true, call, "complex call");
@@ -68,6 +77,9 @@ void test_parser () {
     alp("while (true) { int i; }", true, _while, "Basic while statement.");
 
     alp("return 1 + 2;", true, _return, "return expression");
+    alp("return fib(n-1) + fib(n-2);", true, _return, "fib return");
+    alp("return a(b(x) + c(x)) + d(x);", true, _return, 
+        "return nested function");
 
 
     __end();
@@ -75,8 +87,10 @@ void test_parser () {
     __title("Testing Expressions");
       
     alp("0", true, expression, "0 is a valid expression");
-
     alp("true & false", true, expression, "Valid logical expression.");
+    alp("a > b & b < a", true, expression, "silly logical expression.");
+    alp("(a > b) & (b < a) & (true | false)", true,
+        expression, "silly logical expression.");
 
     alp("'a'",  true, terminal, "Valid character terminal.");
     alp("\"string\"",  true, terminal, "Valid string terminal.");
@@ -90,7 +104,6 @@ void test_parser () {
     alp("a<b", true, relational, "Valid relational statement1.")
     alp("a>b", true, relational, "Valid relational statement2.")
 
-    alp("a==b", true, relational, "Valid relational statement3.")
     alp("a!=b", true, relational, "Valid relational statement4.")
 
     alp("1+2", true, sum, "We can add 2 numbers.");
@@ -118,34 +131,27 @@ void test_parser () {
     // missing argument name
     alpe("float x (integer ) {}", "IDENTIFIER", ")", program, "expects IDENTIFIER");
 
+    // fun if stuff
     alpe("if", "(", "", _if, "needs open (");
     alpe("if )", "(", ")", _if, "needs ( has )");
-
     alpe("if ()", "value or identifier", ")", _if, "expects value or id");
     alpe("if (true) {", "}", "", _if, "expects }");
     alpe("if (true) { } else {", "}", "", _if, "expects }");
+
     // testing call token
-    //alp("hello(a);", true, call, "is a valid call");
-    //alpe("hello", "(", "", call, "needs (");
-    //alpe("hello(", "value or identifier", "", call, "expects )");
-    //alpe("hello(a)", ";", "", call, "needs (");
+    alpe("hello)", "(", ")", call, "invalid call");
+    alpe("hello", "(", "", call, "needs (");
+    alpe("hello(", "value or identifier", "", call, "expects )");
+    alpe("hello(there()", ")", "", call, "needs last )");
+
+    // testing global declaration
+    alpe("int i", ";", "", program, 
+        "Error for no ';' for global declaration.");
 
 /*
-    alpe("hello(a)", ";", call, "needs (");
-    //alpe("hello(", "value or identifier", call, "needs (");
-    {
-        parser p;
-        p.error(";");
-        assert(p.errors[0].expected == ";" && 
-            p.errors[0].recieved.type == UNDEFINED,
-            "Error reporting works.");
-    }
 
-    alpe("123", "type", program, 
+    alpe("123", "KEYWORD", "INTEGER",  program, 
         "Error for no 'type' for global declaration.");
-
-    alpe("int i", ";", program, 
-        "Error for no ';' for global declaration.");
 
     alpe("int int", "identifier", program, 
         "Error for no 'identifier' for global declaration.");
