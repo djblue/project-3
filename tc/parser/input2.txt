@@ -1,0 +1,8 @@
+int roots (float a, float b, float c) {
+    return sqrt(b*b - 4*a*c) / (2*a);
+}
+
+int main () {
+    printf(roots(2,2,2));
+    return 0;
+}

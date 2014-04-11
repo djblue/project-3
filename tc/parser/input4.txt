@@ -1,0 +1,4 @@
+void foo () {
+	integer a = x + y + z;
+	integer b = i + j + k;
+}

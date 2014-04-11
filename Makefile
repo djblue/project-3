@@ -68,7 +68,7 @@ ltc%: tc/lexer/input%.txt
 	@diff -bc output.txt tc/lexer/output$*.txt && echo "PASSED $*"
 	@rm -f input.txt output.txt
 
-parser: ptc2
+parser: ptc1 ptc2 ptc3 ptc4 ptc5 ptc6
 
 # run all test cases for parser
 ptc%: tc/parser/input%.txt

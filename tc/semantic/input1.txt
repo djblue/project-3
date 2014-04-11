@@ -1,0 +1,15 @@
+int global;
+void printf (int i) {
+}
+int main () {
+
+    int i;
+    i = 0;
+
+    while (i < 10) {
+        printf(i);
+        i = i + 1;
+    }
+
+    return 0;
+}

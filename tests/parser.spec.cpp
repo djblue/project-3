@@ -13,7 +13,8 @@
     for (i = 0; i < split.size(); i++) \
         tokens.push_back(l.lex(split[i])); \
     parser p(tokens); \
-    assert(p.rule() == state, message); }
+    assert(p.rule() == state && \
+    p.tokens.size() == p.current_token, message); }
 
 // assert lex-parse error macro
 #define alpe(expr, x, y, rule, message) { \
@@ -56,6 +57,14 @@ void test_parser () {
     alp("int one () { return one(); }", true,
         program, "function with return function call.");
 
+    alp("int main () { return 1 + two(1+2, a+b); }", true,
+        program, "function with return function call 2.");
+
+    alp("int foo () {"
+	        "return goo((6*(b + 1) - 15) % 24); }",
+    true, program, "tricky function.");
+
+
     alp("int fac (int n) { "
         "if (n<1) return 1;"
         "else return n*fac(n-1); }"
@@ -67,12 +76,23 @@ void test_parser () {
     alp("hello((1+2)/(six))", true, call, "complex call");
     alp("hello(there())", true, call, "nested function call");
     alp("hello(there(1+2)/(six))", true, call, "nested function call");
+    alp("goo((6*(b + 1) - 15) % 24)", true, call, "tricky call");
+
+    alp("{ int a,b; int i; }", true, block, "tricky block");
+
+    alp("int a;", true, line, "local declaration");
+
+    alp("int a;", true, local, "local declaration");
+    alp("int a = 100;", true, local, "local declaration");
+
+    alp("a = b;", true, assign, "valid assignment.");
+    alp("a = b();", true, assign, "valid assignment.");
+    alp("a = b(a+b);", true, assign, "valid assignment.");
 
     alp("if (true) {}", true, _if, "If statement");
     alp("if (true) { int i; }", true, _if, "If statement with body");
     alp("if (true) { if (false) {} }", true, _if, "Nested If");
 
-    alp("while (true);", true, _while, "Basic while statement.");
     alp("while (true) {}", true, _while, "Basic while statement.");
     alp("while (true) { int i; }", true, _while, "Basic while statement.");
 
@@ -80,6 +100,7 @@ void test_parser () {
     alp("return fib(n-1) + fib(n-2);", true, _return, "fib return");
     alp("return a(b(x) + c(x)) + d(x);", true, _return, 
         "return nested function");
+    alp("return goo((6*(b + 1) - 15) % 24);", true, _return, "tricky call");
 
 
     __end();
@@ -104,16 +125,14 @@ void test_parser () {
     alp("a<b", true, relational, "Valid relational statement1.")
     alp("a>b", true, relational, "Valid relational statement2.")
 
-    alp("a!=b", true, relational, "Valid relational statement4.")
-
     alp("1+2", true, sum, "We can add 2 numbers.");
     alp("1-2", true, sum, "We can subtract 2 numbers.");
     alp("1/2", true, product, "We can divide 2 numbers.");
     alp("1*2", true, product, "We can multiply 2 numbers.");
     alp("1%2", true, product, "We can mod 2 numbers.");
 
-    alp("3 % 2 == 1", true, expression, "Complex expression.");
-    alp("a % b == 1 || a % b == 0", true, expression, "Complex expression.");
+    alp("3 % 2 < 1", true, expression, "Complex expression.");
+    alp("a % b > 1 | a % b < 0", true, expression, "Complex expression.");
 
     __end();
     __title("Testing Errors");
@@ -163,6 +182,10 @@ void test_parser () {
         expression, "Malformed Expression");
     alpe("--", "value or identifier", "-",
         expression, "Malformed Expression");
+
+    // block expressions
+    alpe("{ int a,b; int i }", ";", "}", block, "tricky block");
+    alpe("{ int a b; int i }", ";", "b", block, "tricky block");
 
     __end();
 

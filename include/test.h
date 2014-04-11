@@ -1,10 +1,10 @@
+#ifndef TEST_H
+#define TEST_H
+
 #include <iostream>
 #include <vector>
 #include <string>
 #include <sstream>
-
-#ifndef TEST_H
-#define TEST_H
 
 int __test_count = 0; 
 std::stringstream __string_buffer, __title_buffer, __error_buffer;

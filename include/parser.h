@@ -46,6 +46,9 @@ private:
 
     void error_recovery(string end);
 
+    bool expect(string str, string recovery);
+    bool expect(types t, string recover);
+
     token shift ();
     token peek ();
     void unshift ();
@@ -92,6 +95,28 @@ public:
 
     friend void test_parser ();
 };
+
+bool parser::expect(string str, string recover) {
+    if (peek().text != str) {
+        report(peek(), str);
+        error_recovery(recover);
+        return false;
+    } else {
+        shift();
+        return true;
+    }
+}
+
+bool parser::expect(types t, string recover) {
+    if (peek().type != t) {
+        report(peek(), type_names[t]);
+        error_recovery(recover);
+        return false;
+    } else {
+        shift();
+        return true;
+    }
+}
 
 void parser::report(token recieved, string expected) {
 
@@ -285,7 +310,11 @@ bool parser::local () {
     return true;
 }
 bool parser::assign () {
-    return false; 
+    type(ID);
+    text("=");
+    if(!expression()) return false;
+    text(";");
+    return true;
 }
 bool parser::_if () {
     

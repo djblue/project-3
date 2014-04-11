@@ -24,7 +24,7 @@ remaining test cases in the 'tc' directory.
 
 ## Grammar Rules
 
-    <program>   := [type] [id] (<global> | <function>)
+    <program>   := [type] [id] (<global> | <function>)+ | ""
     <global>    := ("," [id]) ";"
     <function>  := "(" <parameter>* ")" "{" <line>* "}"
 
