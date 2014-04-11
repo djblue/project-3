@@ -9,23 +9,37 @@ using namespace std;
 
 int main (int argc, char** argv) {
 
-    int output = 0;
+    // 0 - default
+    int mode = 0;
+
+    ifstream fin;
+    ofstream fout;
     
     // parse command line arguments
-    // -p parser output
-    // -l lexer output
+    // -l lexer output (mode = 1)
+    // -p parser output (mode = 2)
     if (argc == 4) {
         if (argv[1][1] == 'l') {
-            output = 1;
+            mode = 1;
+            fin.open(argv[2]);
+            fout.open(argv[3]);
+        } else if (argv[1][1] == 'p') {
+            mode = 2;
+            fin.open(argv[2]);
+            fout.open(argv[3]);
+        } else {
+            cerr << "Invalid option '" <<  argv[1][1] << "'" << endl;
+            return -2;
         }
     } else if (argc != 3) {
         cerr << "Usage: " << argv[0]
              << " [opts] input output" << endl;
         return -1;
+    } else {
+        fin.open(argv[1]);
+        fout.open(argv[2]);
     }
 
-    ifstream fin(argv[1+output]);
-    ofstream fout(argv[2+output]);
 
     if (!fin) {
         cerr << "File: " << argv[1] 
@@ -47,18 +61,28 @@ int main (int argc, char** argv) {
     vector<token> tokens;
 
     // Read through the file line by line.
-    while (std::getline(fin, temp)) {
+    while (getline(fin, temp)) {
         test = l.split(temp);
         for (i = 0; i < test.size(); i++) {
             token t = l.lex(test[i], line_number);
             tokens.push_back(l.lex(test[i], line_number));
             // show lexer output
-            if (output == 1) {
+            if (mode == 1) {
                 fout << type_names[t.type]
                      << "\t" << t.text << endl;
             }
         }
         line_number++;
+    }
+
+    if (mode == 2) {
+        parser p (tokens);
+        if (p.parse()) {
+            cout << "Build Successful" << endl;
+        } else {
+            cout << "Build Failed" << endl;
+            //fout << p.error_report();
+        }
     }
 
     fin.close();
