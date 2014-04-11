@@ -6,16 +6,15 @@
 #include <iostream>
 #include <vector>
 
-#include "error.h"
 #include "lexer.h"
 #include "semantic.h"
 
 #define text(s) { \
-    if (peek().text != s) { status = false; e.report(peek(), s); return false; } \
+    if (peek().text != s) { status = false; report(peek(), s); return false; } \
     else { shift(); /*cerr << "found " << s << endl; */}}
 
 #define type(t) { \
-    if (peek().type != t) { status = false; e.report(peek(), type_names[t]); return false; } \
+    if (peek().type != t) { status = false; report(peek(), type_names[t]); return false; } \
     else if (peek().type == ID) { current_id = shift().text; } \
     else if (peek().type == KEYWORD) { current_keyword = shift().text; } \
     else { shift(); /*cerr << "found " << type_names[t] << endl;*/ }}
@@ -27,13 +26,24 @@ using namespace std;
 class parser {
 
 private:
+
     semantic sm;
     string current_scope, current_id, current_keyword;
     int line_number;
     vector<token> tokens;
     vector<token>::size_type current_token;
 
-    error e;
+
+    struct error {
+        string expected;
+        token  recieved;
+    };
+
+    vector<error> errors;
+    vector<error>::iterator it;
+
+    void report(token recieved, string expected);
+
     void error_recovery(string end);
 
     token shift ();
@@ -78,10 +88,34 @@ public:
     parser (vector<token> tokens);
 
     bool parse ();
-    string error_report();
+    void print(ostream& out);
 
     friend void test_parser ();
 };
+
+void parser::report(token recieved, string expected) {
+
+    struct error e;
+    e.expected = expected;
+    e.recieved = recieved;
+
+    errors.push_back(e);
+
+}
+
+void parser::print(ostream& out) {
+    
+    for (it = errors.begin(); it != errors.end(); it++) {
+        out << "Line " 
+            << (*it).recieved.line 
+            << ": expected "
+            << (*it).expected 
+            << " received \'" 
+            << (*it).recieved.text 
+            << "\'"<< endl;
+    }
+
+}
 
 void parser::error_recovery(string end) {
     int line = peek().line;
@@ -428,7 +462,7 @@ bool parser::terminal () {
         if (t.type != INTEGER && t.type != HEXADECIMAL && t.type != OCTAL
         && t.type != CHAR &&
         t.type != STRING && t.type != FLOAT && t.type != ID) {
-            e.report (t, string("value or identifier"));
+            report (t, string("value or identifier"));
             return false;
         } else {
             shift();

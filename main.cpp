@@ -81,7 +81,7 @@ int main (int argc, char** argv) {
             cout << "Build Successful" << endl;
         } else {
             cout << "Build Failed" << endl;
-            //fout << p.error_report();
+            fout << p.print_errors();
         }
     }
 
