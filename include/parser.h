@@ -158,13 +158,9 @@ token parser::peek () {
 void parser::unshift () {
     current_token--;
 }
-bool parser::parse () {
-    program();
-    return status;
-}
+bool parser::parse () { return program(); }
 bool parser::program () {
 
-    bool status = true;
     current_scope = "global"; // set default scope as global
 
     if (tokens.size() == 0) {
@@ -265,7 +261,10 @@ bool parser::line () {
         } else {
             unshift();
             unshift();
-            if (call()) return true;
+            if (call()) {
+                text(";");
+                return true;
+            }
         }
     }
 
@@ -349,22 +348,23 @@ bool parser::_return () {
     return true;
 }
 bool parser::call() {
-    bool status = true;
     type(ID);
     text ("(");
 
-    do {
-        if (!expression()) {
-            error_recovery(")");
-            shift();
-            return false;
-        }
-    } while (shift().text == ",");
-    unshift();
+    // not an empty function call
+    if (peek().text != ")")  {
+        do {
+            if (!expression()) {
+                error_recovery(")");
+                shift();
+                return false;
+            }
+        } while (shift().text == ",");
+        unshift();
+    }
 
     text(")");
-    text(";");
-    return status;
+    return true;
 }
 bool parser::expression () {
     do {
@@ -453,6 +453,15 @@ bool parser::sign () {
 }
 bool parser::terminal () {
     //cout << "BEGIN TERM" << endl; 
+    if (shift().type == ID) {
+        if (peek().text == "(") {
+            unshift(); 
+            return call();
+        }
+    }
+
+    unshift();
+    
     if (shift().text == "(") {
         if (!expression()) return false;
         text(")");

@@ -24,13 +24,13 @@
     for (i = 0; i < split.size(); i++) \
         tokens.push_back(l.lex(split[i])); \
     parser p(tokens); \
-    assert(!p.rule() && p.e.errors.size() > 0 && \
-        p.e.errors[0].expected == x && p.e.errors[0].recieved.text == y, message); }
+    assert(!p.rule() && p.errors.size() > 0 && \
+        p.errors[0].expected == x && p.errors[0].recieved.text == y, message); }
 
 void test_parser () {
 
     try {
-    
+
     __title("Testing the Parser");
 
     alp("",          true, program, "Empty string is a valid program.");
@@ -53,8 +53,11 @@ void test_parser () {
     alp("void one () { return i + j; }", true,
         program, "Valid function with return expression");
 
-    alp("hello((there)+(your));", true, call, "complex call");
-    alp("hello((1+2)/(six));", true, call, "complex call");
+    alp("hello()", true,  call, "valid call");
+    alp("hello((there)+(your))", true, call, "complex call");
+    alp("hello((1+2)/(six))", true, call, "complex call");
+    alp("hello(there())", true, call, "nested function call");
+    alp("hello(there(1+2)/(six))", true, call, "nested function call");
 
     alp("if (true) {}", true, _if, "If statement");
     alp("if (true) { int i; }", true, _if, "If statement with body");
@@ -100,7 +103,6 @@ void test_parser () {
     alp("a % b == 1 || a % b == 0", true, expression, "Complex expression.");
 
     __end();
-
     __title("Testing Errors");
 
     // testing error recovery.
@@ -124,7 +126,6 @@ void test_parser () {
     alpe("if (true) { } else {", "}", "", _if, "expects }");
     // testing call token
     //alp("hello(a);", true, call, "is a valid call");
-    alp("hello();", true,  call, "valid call");
     //alpe("hello", "(", "", call, "needs (");
     //alpe("hello(", "value or identifier", "", call, "expects )");
     //alpe("hello(a)", ";", "", call, "needs (");
