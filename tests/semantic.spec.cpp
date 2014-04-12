@@ -18,6 +18,19 @@
     assert(p.sm.type_stack.size() > 0 && \
         p.sm.type_stack.back() == type, message) }
 
+// evaluate for errors
+#define error(expr,error,rule,message) { \
+    lexer l; \
+    vector<string> split = l.split(expr); \
+    vector<string>::size_type i; \
+    vector<token> tokens; \
+    for (i = 0; i < split.size(); i++) \
+        tokens.push_back(l.lex(split[i])); \
+    parser p(tokens); p.rule(); \
+    /*cerr << p.sm.type_stack.back() << endl; */ \
+    assert(p.sm.errors.size() > 0 && \
+        p.sm.errors[0].type == semantic::error, message) }
+
 void test_semantic () {
 
     __title("Testing Type Evaluation");
@@ -62,6 +75,21 @@ void test_semantic () {
     // crazy expressions
     eval("(2 + 1)/(3 + 1) ", "INTEGER", expression, "it should be an integer.");
     eval("(1 < 2) | (2 < 1)", "BOOL", expression, "it should be bool");
+
+    __end();
+
+    __title("Testing Semantic Errors");
+
+    // while expects boolean
+    error("while () {}", BOOLEAN_EXPECTED, _while, "expects boolean.");
+    error("while (1 + 2) {}", BOOLEAN_EXPECTED, _while, "expects boolean.");
+    error("while (2*3) {}", BOOLEAN_EXPECTED, _while, "expects boolean.");
+
+    // if expects boolean
+    error("if () {}", BOOLEAN_EXPECTED, _if, "expects boolean.");
+    error("if (2+4) {}", BOOLEAN_EXPECTED, _if, "expects boolean.");
+    error("if (3*9) {}", BOOLEAN_EXPECTED, _if, "expects boolean.");
+
 
     __end();
 

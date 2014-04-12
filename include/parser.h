@@ -328,6 +328,9 @@ bool parser::_if () {
         status = false;
     }
     text(")");
+
+    sm.coditions(line_number);
+
     if (peek().text == "{") {
         if (!block()) return false;
     } else {
@@ -357,6 +360,8 @@ bool parser::_while () {
         status = false;
     }
     text(")");
+
+    sm.coditions(line_number);
 
     if (peek().text == ";") {
         return true;

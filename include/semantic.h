@@ -3,17 +3,39 @@
 
 #include <vector>
 #include <fstream>
+#include <iostream>
 
 #include "cube.h"
 #include "symboltable.h"
-
 
 using namespace std;
 
 class semantic {
 
 private: 
-    
+
+    // types of errors available for testing
+    enum error_types {
+        DUPLICATE_VARIABLE,
+        DUPLICATE_METHOD,
+        VARIABLE_NOT_FOUND,
+        METHOD_NOT_FOUND,
+        TYPE_MISMATCH,
+        BOOLEAN_EXPECTED,
+        RETURN_MISMATCH,
+        INCORRECT_PARAMETERS
+    };
+
+    // error struct to inspect for testing/ printing
+    struct error {
+        int line;
+        error_types type;
+        string info;
+    };
+
+    vector<error> errors;
+    vector<error>::iterator it;
+    void report (int line, error_types type, string info);
 
     // cube for calculating results of operations
     cube c;
@@ -44,7 +66,7 @@ public:
     // types of variables match to values assigned to them.
     void types ();
     // conditions evaluate to booleans
-    void coditions ();
+    void coditions (int line);
     // return value matches function definitions
     void _return ();
     // number and types match definition
@@ -54,6 +76,9 @@ public:
     // tyep checking
     void calculatTypeBinary (string op);
     void calculatTypeUnary (string op);
+
+    // report any errors
+    void print (ostream out);
 
     friend void test_semantic ();
 
@@ -65,6 +90,38 @@ semantic::semantic () {
 
 semantic::semantic (string output) {
     fout.open(output.c_str());
+}
+
+void semantic::report (int line, error_types type, string info) {
+    struct error e;
+    e.line = line;
+    e.type = type;
+    e.info = info;
+    errors.push_back(e);
+}
+
+void semantic::print (ostream out) {
+
+    for (it = errors.begin(); it != errors.end(); it++) {
+        switch ((*it).type) {
+
+            case DUPLICATE_VARIABLE:
+            case DUPLICATE_METHOD:
+            case VARIABLE_NOT_FOUND:
+            case METHOD_NOT_FOUND:
+            case TYPE_MISMATCH:
+
+            case BOOLEAN_EXPECTED:
+                out << "Boolean expression expected on line "
+                    << (*it).line << endl;
+                break;
+
+            case RETURN_MISMATCH:
+            case INCORRECT_PARAMETERS:
+            default:
+                break;
+        }
+    }
 }
 
 void semantic::declaration_and_unicity  () {
@@ -93,13 +150,10 @@ void semantic::types () {
     } 
 }
 
-void semantic::coditions () {
-
-
-    /* body */
-
-    if (true) {
-        fout << "Boolean expression expected in line " << line << endl;
+void semantic::coditions (int line) {
+    string temp = pop();
+    if (temp != "BOOL") {
+        report(line, BOOLEAN_EXPECTED, "");
     }
 }
 
