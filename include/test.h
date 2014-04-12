@@ -6,10 +6,10 @@
 #include <string>
 #include <sstream>
 
-int __test_count = 0; 
-std::stringstream __string_buffer, __title_buffer, __error_buffer;
-std::vector<std::string> __test_errors;
-std::vector<std::string>::iterator it;
+extern int __test_count; 
+extern std::stringstream __string_buffer, __title_buffer, __error_buffer;
+extern std::vector<std::string> __test_errors;
+extern std::vector<std::string>::iterator it;
 
 #define __title(text) { \
     __test_count = 0; \

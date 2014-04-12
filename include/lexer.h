@@ -25,7 +25,6 @@ class lexer {
 
 private:
 
-
     // vector of all keywords
     vector<string> keywords;
     // key->value pair to generate deterministic finite automata

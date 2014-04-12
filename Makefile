@@ -15,13 +15,12 @@ ASSIGN_FILES=*
 
 # setup compiler variables
 CC=g++
-CFLAGS=-c -g -Wall -MMD
+CFLAGS=-c -Wall -MMD
 LDFLAGS=
 
 # setup source files and executable name
 SOURCES=$(wildcard src/*.cpp)
-OBJECTS=$(SOURCES:.o=.cpp)
-OBJECTS=$(addprefix obj/,$(notdir $(SOURCES:.cpp=.o)))
+OBJECTS=$(addprefix obj/,$(notdir $(SOURCES:.cpp=.o))) main.o
 EXECUTABLE=run
 
 # -- targets --------------------------------------------------
@@ -33,12 +32,13 @@ all: $(EXECUTABLE) $(SOURCES)
 $(EXECUTABLE): $(OBJECTS); $(CC) $(LDFLAGS) $^ -o $@
 
 # generic target to setup object source dependency
+%.o: src/%.cpp; $(CC) $(CFLAGS) $< -o $@
 obj/%.o: src/%.cpp; $(CC) $(CFLAGS) $< -o $@
 
 -include $(OBJECTS:.o=.d)
 
 # clean the build
-clean: ; rm -rf *.o $(EXECUTABLE) && rm -f tests/runner
+clean: ; rm -rf *.o $(EXECUTABLE)
 
 # archive the assignment
 zip: ; zip -r Badahdah-Abdullah-P1.zip .

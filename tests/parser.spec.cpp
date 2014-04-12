@@ -9,7 +9,7 @@
     lexer l; \
     std::vector<std::string> split = l.split(expr); \
     std::vector<std::string>::size_type i; \
-    std::vector<token> tokens; \
+    std::vector<lexer::token> tokens; \
     for (i = 0; i < split.size(); i++) \
         tokens.push_back(l.lex(split[i])); \
     parser p(tokens); \
@@ -21,7 +21,7 @@
     lexer l; \
     std::vector<std::string> split = l.split(expr); \
     std::vector<std::string>::size_type i; \
-    std::vector<token> tokens; \
+    std::vector<lexer::token> tokens; \
     for (i = 0; i < split.size(); i++) \
         tokens.push_back(l.lex(split[i])); \
     parser p(tokens); \
@@ -189,7 +189,7 @@ void test_parser () {
 
     __end();
 
-    } catch (token t) {
+    } catch (lexer::token t) {
         __end();
         std::cout << "ERROR: " << t.text << endl;
     }

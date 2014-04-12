@@ -2,8 +2,8 @@
 #include <vector>
 #include <iostream>
 
-#include "../include/lexer.h"
-#include "../include/parser.h"
+#include "include/lexer.h"
+#include "include/parser.h"
 
 using namespace std;
 

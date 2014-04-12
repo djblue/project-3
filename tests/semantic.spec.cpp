@@ -10,7 +10,7 @@
     lexer l; \
     vector<string> split = l.split(expr); \
     vector<string>::size_type i; \
-    vector<token> tokens; \
+    vector<lexer::token> tokens; \
     for (i = 0; i < split.size(); i++) \
         tokens.push_back(l.lex(split[i])); \
     parser p(tokens); p.rule(); \
@@ -23,7 +23,7 @@
     lexer l; \
     vector<string> split = l.split(expr); \
     vector<string>::size_type i; \
-    vector<token> tokens; \
+    vector<lexer::token> tokens; \
     for (i = 0; i < split.size(); i++) \
         tokens.push_back(l.lex(split[i])); \
     parser p(tokens); p.rule(); \

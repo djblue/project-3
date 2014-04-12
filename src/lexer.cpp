@@ -163,8 +163,9 @@ lexer::token lexer::lex (string str, int line) {
     }
 
     // determine if the token is a keyword
-    for (int i = 0; i < keywords.size(); i++) {
-        if (str.compare(keywords[i]) == 0) {
+    for (vector<string>::iterator it 
+        = keywords.begin(); it != keywords.end(); it++) {
+        if (str.compare(*it) == 0) {
             t.type = KEYWORD;
             return t;
         }
