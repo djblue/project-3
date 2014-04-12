@@ -15,12 +15,13 @@ ASSIGN_FILES=*
 
 # setup compiler variables
 CC=g++
-CFLAGS=-c -g -Wall
+CFLAGS=-c -g -Wall -MMD
 LDFLAGS=
 
 # setup source files and executable name
-SOURCES=main.cpp
-OBJECTS=main.o
+SOURCES=$(wildcard src/*.cpp)
+OBJECTS=$(SOURCES:.o=.cpp)
+OBJECTS=$(addprefix obj/,$(notdir $(SOURCES:.cpp=.o)))
 EXECUTABLE=run
 
 # -- targets --------------------------------------------------
@@ -29,10 +30,12 @@ EXECUTABLE=run
 all: $(EXECUTABLE) $(SOURCES)
 
 # target to make the executable
-$(EXECUTABLE): $(OBJECTS); @$(CC) $(LDFLAGS) $^ -o $@
+$(EXECUTABLE): $(OBJECTS); $(CC) $(LDFLAGS) $^ -o $@
 
 # generic target to setup object source dependency
-%.o: %.cpp; @$(CC) $(CFLAGS) $< -o $@
+obj/%.o: src/%.cpp; $(CC) $(CFLAGS) $< -o $@
+
+-include $(OBJECTS:.o=.d)
 
 # clean the build
 clean: ; rm -rf *.o $(EXECUTABLE) && rm -f tests/runner
@@ -77,3 +80,4 @@ ptc%: tc/parser/input%.txt
 	@./run -p input.txt output.txt
 	@diff -bc output.txt tc/parser/output$*.txt && echo "PASSED $*"
 	@rm -f input.txt output.txt
+
