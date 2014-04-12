@@ -1,4 +1,4 @@
-# Lexer
+# Simple Compiler 
 
 This project contains a lexer implemented using a DFA. The lexer is
 contained in 'include/lexer.h'.
@@ -13,6 +13,17 @@ project. Just run the following command:
 The resulting executable is __run__, which expects two arguments, an input
 file name and an output file name.
 
+## Usage
+
+    ./run [flag] in out
+
+Where in and out are the input and output files.
+
+## Flags
+
+- The flag '-l' will output the lexer output.
+- The flag '-p' will output the parser output.
+
 ## Running Tests
 
 Test automation is also provided by way of a make target.
@@ -23,6 +34,8 @@ It will rebuild the project, run the internal unit tests, and the
 remaining test cases in the 'tc' directory.
 
 ## Grammar Rules
+
+Below are the grammar rules for this parser.
 
     <program>   := [type] [id] (<global> | <function>)+ | ""
     <global>    := ("," [id]) ";"
@@ -39,8 +52,8 @@ remaining test cases in the 'tc' directory.
     <if>     := "if" <condition> <block> "else" <block>
     <while>  := "while" <condition> <block>
     <return> := "return" (<expr>";" | ";")
--   <assign> := [id] "=" <expr> ";"
--   <call>   := [id] "(" <parameters> ")" ";"
+    <assign> := [id] "=" <expr> ";"
+    <call>   := [id] "(" <parameters> ")" ";"
 
     <expr> := <or>
     <or>   := <and> | <and> "||" <and>
