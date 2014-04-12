@@ -6,30 +6,38 @@
 #include "../include/semantic.h"
 
 // return semantic result after evaluation
-#define eval(expr,type,rule,message) { \
+#define lexparse(expr) \
     lexer l; \
     vector<string> split = l.split(expr); \
     vector<string>::size_type i; \
     vector<token> tokens; \
     for (i = 0; i < split.size(); i++) \
         tokens.push_back(l.lex(split[i])); \
-    parser p(tokens); p.rule(); \
-    /*cerr << p.sm.type_stack.back() << endl; */ \
+    parser p(tokens);
+
+// return semantic result after evaluation
+#define eval(expr,type,rule,message) { \
+    lexparse(expr); p.rule(); \
+    /*cerr << p.sm.type_stack.size() << endl; \*/ \
     assert(p.sm.type_stack.size() > 0 && \
         p.sm.type_stack.back() == type, message) }
 
+// test if variables end up in symbol table
+#define symbol(expr,id,__type,__scope,rule,message) { \
+    lexparse(expr); p.rule(); \
+    assert(p.sm.table.table[id].size() > 0 && \
+        p.sm.table.table[id][0].type == __type && \
+        p.sm.table.table[id][0].scope == __scope, message) }
+
 // evaluate for errors
 #define error(expr,error,rule,message) { \
-    lexer l; \
-    vector<string> split = l.split(expr); \
-    vector<string>::size_type i; \
-    vector<token> tokens; \
-    for (i = 0; i < split.size(); i++) \
-        tokens.push_back(l.lex(split[i])); \
-    parser p(tokens); p.rule(); \
-    /*cerr << p.sm.type_stack.back() << endl; */ \
+    lexparse(expr); p.rule(); \
+    if (p.sm.errors.size() > 0) { /*cerr << p.sm.errors[0].type << endl;*/ } \
     assert(p.sm.errors.size() > 0 && \
         p.sm.errors[0].type == semantic::error, message) }
+
+#define xerror(expr,error,rule,message) { }
+
 
 void test_semantic () {
 
@@ -78,7 +86,38 @@ void test_semantic () {
 
     __end();
 
+    __title("Testing Symbol Table");
+
+    // global variables
+    symbol("int i;", "i", "int", "global", program, "insert globals");
+    symbol("int j;", "j", "int", "global", program, "insert globals");
+
+    // functions
+    symbol("int fib () {}", "fib_", "int", "function", program, "insert functions");
+    symbol("float fib (int x) {}", "fib_int_", "float", "function", program, "insert functions");
+    symbol("void strcpy (string from, string to) {}", 
+        "strcpy_string_string_", "void", "function", program, "insert functions");
+
+    // local variables scoped to function
+    symbol("int fun () { int a; }", "a", "int", "fun_", program, "insert local");
+    symbol("void main () { float i,j; }", "j", "float", "main_", program, "insert local");
+    symbol( "void main (int arcg, string argv ) {"
+                "float i,j; }", 
+            "j", "float", "main_int_string_", program, "complex insert local");
+
+    // local variables
+    symbol("int i;", "i", "int", "", local, "local variables");
+    symbol("float a;", "a", "float", "", local, "local variables");
+
+    __end();
+
     __title("Testing Semantic Errors");
+
+    // duplicates
+    error("int i, i;", DUPLICATE_VARIABLE, program, "duplicate globals.");
+    error("int i; float i;", DUPLICATE_VARIABLE, program, "duplicate globals.");
+    error("int fib(int n, int n) {}", DUPLICATE_VARIABLE, program, "duplicate parameters.");
+    error("int fib() {} int fib() {}", DUPLICATE_METHOD, program, "duplicate functions");
 
     // while expects boolean
     error("while () {}", BOOLEAN_EXPECTED, _while, "expects boolean.");
@@ -90,6 +129,25 @@ void test_semantic () {
     error("if (2+4) {}", BOOLEAN_EXPECTED, _if, "expects boolean.");
     error("if (3*9) {}", BOOLEAN_EXPECTED, _if, "expects boolean.");
 
+    error("a + b", VARIABLE_NOT_FOUND, expression, "expects not found.");
+    error("int fun () { a = a + 3.14; }", VARIABLE_NOT_FOUND, program, "expects not found.");
+    error("int fun () { int a; b = a; }", VARIABLE_NOT_FOUND, program, "expects not found.");
+
+    // with variables
+    error("int fun () { int a; a = a + 3.14; }", TYPE_MISMATCH, program, "expects not found.");
+    error("int fun () { int a; a = a + \"hello\"; }", TYPE_MISMATCH, program, "expects not found.");
+
+    // with function calls
+    error("int fun () {} int main () { float i; i = fun(); }", TYPE_MISMATCH, program, "expects not found.");
+    error("int fun () { main(); }", METHOD_NOT_FOUND, program, "expects not found.");
+
+    // with return types
+    error("int fun () { return 3.14; }", RETURN_MISMATCH, program, "expects not found.");
+    error("void fun () { return 3.14; }", RETURN_MISMATCH, program, "expects not found.");
+
+    // incorrect parameters
+    error("int main () {} int foo () { main (\"hello\"); }",
+        INCORRECT_PARAMETERS, program, "incorrect parameters");
 
     __end();
 

@@ -64,14 +64,20 @@ public:
     // 1 variable per scope
     void declaration_and_unicity ();
     // types of variables match to values assigned to them.
-    void types ();
+    void types (string id, string scope);
     // conditions evaluate to booleans
     void coditions (int line);
     // return value matches function definitions
-    void _return ();
+    void _return (string scope);
     // number and types match definition
     void paramaters ();
 
+    void insertFunction (string name, string type);
+    void insertGlobal (string name, string type);
+    void insertLocal (string name, string type, string scope);
+
+    void push (string id, string scope);
+    void pushFunction (string id, string name);
 
     // tyep checking
     void calculatTypeBinary (string op);
@@ -90,6 +96,45 @@ semantic::semantic () {
 
 semantic::semantic (string output) {
     fout.open(output.c_str());
+}
+
+void semantic::insertFunction (string name, string type)
+{
+    if (!table.insert(name,type,"function")) {
+        report(line, DUPLICATE_METHOD, ""); 
+    }
+}
+
+void semantic::insertGlobal (string name, string type) {
+    if (!table.insert(name,type,"global")) {
+        report(line, DUPLICATE_VARIABLE, ""); 
+    }
+}
+
+void semantic::insertLocal (string name, string type, string scope) {
+    if (!table.insert(name,type, scope)) {
+        report(line, DUPLICATE_VARIABLE, ""); 
+    }
+}
+
+void semantic::pushFunction (string id, string name) {
+    string type = table.search(id, "function").type;
+    if (type != "") {
+        type_stack.push_back(type);
+    } else if (table.functions.find(name) != table.functions.end()) {
+        report(line, INCORRECT_PARAMETERS, ""); 
+    } else {
+        report(line, METHOD_NOT_FOUND, ""); 
+    }
+}
+
+void semantic::push (string id, string scope) {
+    string type = table.search(id, scope).type;
+    if (type == "") {
+        report(line, VARIABLE_NOT_FOUND, ""); 
+    } else {
+        type_stack.push_back(type);
+    }
 }
 
 void semantic::report (int line, error_types type, string info) {
@@ -141,28 +186,28 @@ void semantic::declaration_and_unicity  () {
     }
 }
 
-void semantic::types () {
+void semantic::types (string id, string scope) {
+    // search for variable type
+    string type = table.search(id, scope).type;
 
-    /* body */
-
-    if (true) {
-        fout << "Type mismatch in line " << line << endl;
-    } 
+    if (type == "") {
+        report(line, VARIABLE_NOT_FOUND, ""); 
+    } else if (type != pop()) {
+        report(line, TYPE_MISMATCH, ""); 
+    }
 }
 
 void semantic::coditions (int line) {
-    string temp = pop();
-    if (temp != "BOOL") {
+    string type = pop();
+    if (type != "BOOL") {
         report(line, BOOLEAN_EXPECTED, "");
     }
 }
 
-void semantic::_return () {
-
-    /* body */
-
-    if (true) {
-        fout << "Return type mismatch in line " << line << endl;
+void semantic::_return (string scope) {
+    string type = table.search(scope, "function").type;
+    if (type != pop()) {
+        report(line, RETURN_MISMATCH, "");
     }
 }
 

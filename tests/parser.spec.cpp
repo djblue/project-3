@@ -50,6 +50,10 @@ void test_parser () {
         program, "Valid function with two declaration.");
     alp("void one () { int i = 1, j = 1; }", true,
         program, "Valid function with two initialization.");
+    alp("void one () { int i, j = 1; }", true,
+        program, "Valid function with assignment.");
+    alp("void one () { int i = 0, j = 0, k = 0; }", true,
+        program, "Valid function with assignment.");
 
     alp("void one () { return i + j; }", true,
         program, "Valid function with return expression");

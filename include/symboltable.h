@@ -4,6 +4,7 @@
 #include <map>
 #include <string>
 #include <vector>
+#include <set>
 
 using namespace std;
 
@@ -16,13 +17,16 @@ private:
         string type;
         string scope;
         string value;
-    };
+    } empty;
 
     // data-structure for storing the symbol table 
     map<string, vector<symbol> > table;
     vector<symbol>::iterator it;
 
 public:
+
+    // keep track of function names
+    set<string> functions;
 
     // default constructor (empty symbol table)
     symboltable();
@@ -32,7 +36,9 @@ public:
     bool insert(string name, string type, string scope);
     // search for a symbol, if found returns the chum bold, else return
     // empty/dummy symbol
-    symbol search(string name);
+    symbol search(string id, string scope);
+
+    friend void test_semantic ();
     
 };
 
@@ -66,6 +72,17 @@ bool symboltable::insert(string name, string type, string scope) {
     // scope, insert symbol and return success.
     table[name].push_back(s);
     return true;
+}
+
+symboltable::symbol symboltable::search(string id, string scope) {
+    vector<symbol> symbols = table[id];
+    for (it = symbols.begin(); it != symbols.end(); it++) {
+        if ((*it).scope == scope) {
+            return (*it);
+        }
+    }
+
+    return empty;
 }
 
 #endif

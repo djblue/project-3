@@ -27,8 +27,18 @@ class parser {
 
 private:
 
+    // variables for semantic analysis
     semantic sm;
     string current_scope, current_id, current_keyword;
+
+    struct param {
+        string type;
+        string name;
+    };
+
+    vector<param> params;
+    vector<param>::iterator pit;
+
     int line_number;
     vector<token> tokens;
     vector<token>::size_type current_token;
@@ -177,7 +187,6 @@ token parser::peek () {
         t.line = line_number;
         t.type = UNDEFINED;
         t.text = "";
-        //cout << "(" << tokens.size() << ","<< current_token << ")" << endl;
         return t;
     }
 }
@@ -187,13 +196,12 @@ void parser::unshift () {
 bool parser::parse () { return program(); }
 bool parser::program () {
 
-    current_scope = "global"; // set default scope as global
-
     if (tokens.size() == 0) {
         return true;
     }
     
     while (current_token < tokens.size()) {
+        current_scope = "global"; // set default scope as global
         type(KEYWORD);
         type(ID);
         if (peek().text == "(") {
@@ -207,10 +215,10 @@ bool parser::program () {
 }
 bool parser::global () {
     while (shift().text == ",") {
-        sm.table.insert(current_id, current_keyword, current_scope);
+        sm.insertGlobal(current_id, current_keyword);
         type(ID);
     }
-    sm.table.insert(current_id, current_keyword, current_scope);
+    sm.insertGlobal(current_id, current_keyword);
     unshift();
     if (peek().text != ";")  {
         report(peek(), ";");
@@ -221,6 +229,10 @@ bool parser::global () {
     return true;
 }
 bool parser::function () {
+
+    sm.table.functions.insert(current_id);
+    string id = current_id + "_", return_type = current_keyword;
+
     bool status = true;
     text("(");
     if (!parameters()) {
@@ -228,6 +240,23 @@ bool parser::function () {
         status = false;
     }
     text(")");
+
+
+    for (pit = params.begin(); pit != params.end(); pit++) {
+        id += (*pit).type;
+        id += "_";
+    }
+
+    // insert funciton into symbol table after id is computed
+    sm.insertFunction(id, return_type);
+
+    // insert all of the parameters
+    for (pit = params.begin(); pit != params.end(); pit++) {
+        sm.insertLocal((*pit).name, (*pit).type, id);
+    }
+
+    current_scope = id;
+
     status = status && block();
     return status;
 }
@@ -243,10 +272,16 @@ bool parser::block () {
     return true;
 }
 bool parser::parameters () {
+    params.empty();
     do {
         if (peek().text != ")") {
             type(KEYWORD);
             type(ID);
+            // insert param for future processing.
+            struct param p; 
+            p.type = current_keyword;
+            p.name = current_id;
+            params.push_back(p);
         }
     } while (shift().text == ",");
     unshift();
@@ -280,7 +315,11 @@ bool parser::line () {
         token t = shift();
         
         if (t.text == "=") {
-            if (expression() && shift().text == ";") return true;
+            unshift();
+            unshift();
+            if (assign()) {
+                return true;
+            }
         } else {
             unshift();
             unshift();
@@ -301,6 +340,7 @@ bool parser::local () {
     type(KEYWORD);
     do {
         type(ID);
+        sm.table.insert(current_id, current_keyword, current_scope);
         if (peek().text == "=") {
             shift();
             if(!expression()) return false;
@@ -312,8 +352,11 @@ bool parser::local () {
 }
 bool parser::assign () {
     type(ID);
+    cout << current_id << endl;
+    string id = current_id;
     text("=");
     if(!expression()) return false;
+    sm.types(id, current_scope);
     text(";");
     return true;
 }
@@ -376,11 +419,13 @@ bool parser::_while () {
 bool parser::_return () {
     text("return");
     if (!expression()) return false;
+    sm._return(current_scope);
     text(";");   
     return true;
 }
 bool parser::call() {
     type(ID);
+    string name = current_id, id = current_id + "_";
     text ("(");
 
     // not an empty function call
@@ -391,9 +436,19 @@ bool parser::call() {
                 shift();
                 return false;
             }
+            struct param p; 
+            p.type = sm.pop();
+            params.push_back(p);
         } while (shift().text == ",");
         unshift();
     }
+
+    for (pit = params.begin(); pit != params.end(); pit++) {
+        id += (*pit).type;
+        id += "_";
+    }
+
+    sm.pushFunction(id,name);
 
     text(")");
     return true;
@@ -532,24 +587,31 @@ bool parser::sign () {
     return true;
 }
 bool parser::terminal () {
-    if (shift().type == ID) {
+
+    token t = shift();
+
+    // for nested function calls
+    if (t.type == ID) {
         if (peek().text == "(") {
             unshift(); 
             return call();
         }
     }
 
-    unshift();
-    
-    if (shift().text == "(") {
+    // for nested parens
+    if (t.text == "(") {
         if (!expression()) return false;
         text(")");
     } else {
         unshift();
         token t = peek();
+
         if (t.type < INTEGER || t.type > BOOL) { 
             report (t, string("value or identifier"));
             return false;
+        } else if (t.type == ID) {
+            sm.push(t.text, current_scope);
+            shift();
         } else {
             sm.type_stack.push_back(type_names[t.type]);
             shift();
