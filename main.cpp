@@ -58,17 +58,17 @@ int main (int argc, char** argv) {
     string temp;
     vector<string> test;
     vector<string>::size_type i;
-    vector<token> tokens;
+    vector<lexer::token> tokens;
 
     // Read through the file line by line.
     while (getline(fin, temp)) {
         test = l.split(temp);
         for (i = 0; i < test.size(); i++) {
-            token t = l.lex(test[i], line_number);
+            lexer::token t = l.lex(test[i], line_number);
             tokens.push_back(l.lex(test[i], line_number));
             // show lexer output
             if (mode == 1) {
-                fout << type_names[t.type]
+                fout << lexer::type_names[t.type]
                      << "\t" << t.text << endl;
             }
         }
