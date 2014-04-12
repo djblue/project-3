@@ -30,58 +30,58 @@ public:
 cube::cube () {
 
     // addition
-    bcube["+"]["int"]["int"]        = "int";
-    bcube["+"]["float"]["int"]      = "float";
-    bcube["+"]["int"]["float"]      = "float";
-    bcube["+"]["float"]["float"]    = "float";
+    bcube["+"]["INTEGER"]["INTEGER"]  = "INTEGER";
+    bcube["+"]["FLOAT"]["INTEGER"]    = "FLOAT";
+    bcube["+"]["INTEGER"]["FLOAT"]    = "FLOAT";
+    bcube["+"]["FLOAT"]["FLOAT"]      = "FLOAT";
 
-    bcube["+"]["string"]["string"]  = "string";
+    bcube["+"]["STRING"]["STRING"]    = "STRING";
 
-    bcube["+"]["string"]["int"]     = "string";
-    bcube["+"]["string"]["float"]   = "string";
-    bcube["+"]["string"]["char"]    = "string";
-    bcube["+"]["string"]["bool"]    = "string";
+    bcube["+"]["STRING"]["INTEGER"]   = "STRING";
+    bcube["+"]["STRING"]["FLOAT"]     = "STRING";
+    bcube["+"]["STRING"]["CHARACTER"] = "STRING";
+    bcube["+"]["STRING"]["BOOL"]      = "STRING";
 
-    bcube["+"]["int"]["string"]     = "string";
-    bcube["+"]["float"]["string"]   = "string";
-    bcube["+"]["char"]["string"]    = "string";
-    bcube["+"]["bool"]["string"]    = "string";
+    bcube["+"]["INTEGER"]["STRING"]   = "STRING";
+    bcube["+"]["FLOAT"]["STRING"]     = "STRING";
+    bcube["+"]["CHARACTER"]["STRING"] = "STRING";
+    bcube["+"]["BOOL"]["STRING"]      = "STRING";
 
     // subtraction
-    bcube["-"]["int"]["int"]      = "int";
-    bcube["-"]["float"]["int"]    = "float";
-    bcube["-"]["int"]["float"]    = "float";
-    bcube["-"]["float"]["float"]  = "float";
+    bcube["-"]["INTEGER"]["INTEGER"]  = "INTEGER";
+    bcube["-"]["FLOAT"]["INTEGER"]    = "FLOAT";
+    bcube["-"]["INTEGER"]["FLOAT"]    = "FLOAT";
+    bcube["-"]["FLOAT"]["FLOAT"]      = "FLOAT";
 
-    bcube["*"]["int"]["int"]      = "int";
-    bcube["*"]["float"]["int"]    = "float";
-    bcube["*"]["int"]["float"]    = "float";
-    bcube["*"]["float"]["float"]  = "float";
+    bcube["*"]["INTEGER"]["INTEGER"]  = "INTEGER";
+    bcube["*"]["FLOAT"]["INTEGER"]    = "FLOAT";
+    bcube["*"]["INTEGER"]["FLOAT"]    = "FLOAT";
+    bcube["*"]["FLOAT"]["FLOAT"]      = "FLOAT";
 
-    bcube["/"]["int"]["int"]      = "int";
-    bcube["/"]["float"]["int"]    = "float";
-    bcube["/"]["int"]["float"]    = "float";
-    bcube["/"]["float"]["float"]  = "float";
+    bcube["/"]["INTEGER"]["INTEGER"]  = "INTEGER";
+    bcube["/"]["FLOAT"]["INTEGER"]    = "FLOAT";
+    bcube["/"]["INTEGER"]["FLOAT"]    = "FLOAT";
+    bcube["/"]["FLOAT"]["FLOAT"]      = "FLOAT";
 
     // logical operations
-    bcube["|"]["bool"]["bool"]      = "bool";
-    bcube["&"]["bool"]["bool"]      = "bool";
+    bcube["|"]["BOOL"]["BOOL"]        = "BOOL";
+    bcube["&"]["BOOL"]["BOOL"]        = "BOOL";
 
-    bcube["<"]["int"]["int"]       = "bool";
-    bcube["<"]["int"]["float"]     = "bool";
-    bcube["<"]["float"]["int"]     = "bool";
-    bcube["<"]["float"]["float"]   = "bool";
+    bcube["<"]["INTEGER"]["INTEGER"]  = "BOOL";
+    bcube["<"]["INTEGER"]["FLOAT"]    = "BOOL";
+    bcube["<"]["FLOAT"]["INTEGER"]    = "BOOL";
+    bcube["<"]["FLOAT"]["FLOAT"]      = "BOOL";
 
-    bcube[">"]["int"]["int"]       = "bool";
-    bcube[">"]["int"]["float"]     = "bool";
-    bcube[">"]["float"]["int"]     = "bool";
-    bcube[">"]["float"]["float"]   = "bool";
+    bcube[">"]["INTEGER"]["INTEGER"]  = "BOOL";
+    bcube[">"]["INTEGER"]["FLOAT"]    = "BOOL";
+    bcube[">"]["FLOAT"]["INTEGER"]    = "BOOL";
+    bcube[">"]["FLOAT"]["FLOAT"]      = "BOOL";
 
     // unary cube
-    ucube["-"]["int"]               = "int";
-    ucube["-"]["float"]             = "float";
+    ucube["-"]["INTEGER"]             = "INTEGER";
+    ucube["-"]["FLOAT"]               = "FLOAT";
 
-    ucube["!"]["bool"]              = "bool";
+    ucube["!"]["BOOL"]                = "BOOL";
 
     // Everything not listed will be an null/error!
 
@@ -89,9 +89,8 @@ cube::cube () {
 
 string cube::result(string op, string type) {
     // sorry, you have an error
-    if ( ucube.find(op)->second.find(type)
-        == ucube.find(op)->second.end() ) {
-        return "error";
+    if (ucube[op][type] == "") {
+        return "ERROR";
     // yeah, we found it
     } else {
         return ucube[op][type];
@@ -100,9 +99,8 @@ string cube::result(string op, string type) {
 
 string cube::result(string op, string type1, string type2) {
     // sorry, you have an error
-    if ( bcube.find(op)->second.find(type1)->second.find(type2)
-        == bcube.find(op)->second.find(type1)->second.end() ) {
-        return "error";
+    if (bcube[op][type1][type2] == "") {
+        return "ERROR";
     // yeah, we found it
     } else {
         return bcube[op][type1][type2];

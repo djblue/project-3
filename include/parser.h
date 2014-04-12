@@ -94,6 +94,7 @@ public:
     void print(ostream& out);
 
     friend void test_parser ();
+    friend void test_semantic ();
 };
 
 bool parser::expect(string str, string recover) {
@@ -393,69 +394,117 @@ bool parser::call() {
     return true;
 }
 bool parser::expression () {
+    bool once = false;
     do {
+        if (once) sm.calculatTypeBinary("|");
         if (!_and()) return false; 
+        once = true;
     } while (shift().text == "|");
     unshift();
     return true;
 }
 bool parser::_and () {
+    bool once = false;
     do {
+        if (once) sm.calculatTypeBinary("&");
         if (!_not()) return false; 
+        once = true; 
     } while (shift().text == "&");
     unshift();
     return true;
 }
 bool parser::_not () {
+    bool status = false;
     if (shift().text != "!") {
         unshift();
+    } else {
+        status = true;
     }
-    if (!relational()) return false;;
-
+    if (!relational()) return false;
+    if (status) sm.calculatTypeUnary("!");
     return true;
 }
 bool parser::relational () {
 
+    string op = "";
+
     do {
+
         if (!sum()) return false;
 
-        if (shift().text == "<") continue;
+        if (op != "") {
+            sm.calculatTypeBinary(op);
+        }
+
+        if (shift().text == "<") {
+            op = "<";
+            continue;
+        }
         unshift();
-        if (shift().text == ">") continue;
+        if (shift().text == ">") {
+            op = ">";
+            continue;
+        }
         unshift();
 
         break;
+
     } while (true);
 
     return true;
 }
 bool parser::sum () {
 
-    do {
-        //cout << "BEGIN ADD" << endl; 
-        if (!product()) return false;
-        //cout << "END ADD" << endl; 
+    string op = "";
 
-        if (shift().text == "+") continue;
+    do {
+
+        if (!product()) return false;
+
+        if (op != "") {
+            sm.calculatTypeBinary(op);
+        }
+
+        if (shift().text == "+") {
+            op = "+";
+            continue;
+        }
         unshift();
-        if (shift().text == "-") continue;
+        if (shift().text == "-") {
+            op = "-";
+            continue;
+        }
         unshift();
 
         break;
+
     } while (true);
 
     return true;
 }
 bool parser::product () {
+    string op = "";
     do {
-        //cout << "BEGIN MUL" << endl; 
+        if (op != "") {
+            sm.calculatTypeBinary(op);
+        }
+
         if (!sign()) return false;
-        //cout << "END MUL" << endl; 
-        if (shift().text == "*") continue;
+
+        if (shift().text == "*") {
+            op = "*";
+            continue;
+        }
         unshift();
-        if (shift().text == "/") continue;
+        if (shift().text == "/") {
+            op = "/";
+            continue;
+        }
         unshift();
-        if (shift().text == "%") continue;
+        if (shift().text == "%") {
+            op = "%";
+            continue;
+        }
         unshift();
 
         break;
@@ -465,20 +514,19 @@ bool parser::product () {
     return true;
 }
 bool parser::sign () {
-    //cout << "BEGIN NEG" << endl; 
     if (shift().text == "-") {
         if (!terminal()) {
             return false;
+        } else {
+            sm.calculatTypeUnary("-");
         }
     } else {
         unshift();
         if (!terminal()) return false;
     }
-    //cout << "END NEG" << endl; 
     return true;
 }
 bool parser::terminal () {
-    //cout << "BEGIN TERM" << endl; 
     if (shift().type == ID) {
         if (peek().text == "(") {
             unshift(); 
@@ -494,17 +542,14 @@ bool parser::terminal () {
     } else {
         unshift();
         token t = peek();
-        if (t.type != INTEGER && t.type != HEXADECIMAL && t.type != OCTAL
-        && t.type != CHAR &&
-        t.type != STRING && t.type != FLOAT && t.type != ID) {
+        if (t.type < INTEGER || t.type > BOOL) { 
             report (t, string("value or identifier"));
             return false;
         } else {
+            sm.type_stack.push_back(type_names[t.type]);
             shift();
         }
-        //cerr << "found " << type_names[t] << endl;
     }
-    //cout << "END TERM" << endl; 
     return true;
 }
 

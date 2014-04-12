@@ -33,6 +33,7 @@ enum types {
     ID,
     KEYWORD,
     ZERO,
+    BOOL,
     T0, T1, T2, T3,
     T4, T5, T6, T7,
     T8, T9, T10, T11
@@ -50,7 +51,8 @@ const char *type_names[] = {
     "CHARACTER",
     "IDENTIFIER",
     "KEYWORD",
-    "INTEGER"
+    "INTEGER",
+    "BOOL"
 };
 
 const int numwords = 12;
@@ -66,7 +68,7 @@ const char *keywords[] = {
     "void",
     "char",
     "string",
-    "boolean"
+    "bool"
 };
 
 // A struct for basic token attributes.
@@ -219,6 +221,11 @@ token lexer::lex (string str, int line) {
     token t;
     t.line = line;
     t.text = str;
+
+    if (str == "true" || str == "false") {
+        t.type = BOOL;
+        return t;
+    }
 
     // determine if the token is a keyword
     for (int i = 0; i < numwords; i++) {

@@ -14,10 +14,6 @@ class semantic {
 
 private: 
     
-    // type stack
-    // to push onto stack use: type_stack.push_back();
-    // to pop from stack use:  type_stack.pop_back();
-    vector<string> type_stack;
 
     // cube for calculating results of operations
     cube c;
@@ -29,6 +25,13 @@ private:
     int line;
 
 public:
+
+    string pop ();
+
+    // type stack
+    // to push onto stack use: type_stack.push_back();
+    // to pop from stack use:  type_stack.pop_back();
+    vector<string> type_stack;
     
     symboltable table;
 
@@ -49,8 +52,8 @@ public:
 
 
     // tyep checking
-    void calculatTypeBinary (string type1, string type2, string op);
-    void calculatTypeUnary (string type, string op);
+    void calculatTypeBinary (string op);
+    void calculatTypeUnary (string op);
 
     friend void test_semantic ();
 
@@ -121,12 +124,21 @@ void semantic::paramaters () {
     }
 }
 
-void semantic::calculatTypeUnary (string type, string op) {
-    type_stack.push_back(c.result(op,type));
+string semantic::pop () {
+    if (type_stack.size() > 0 ) {
+        string temp = type_stack.back();
+        type_stack.pop_back();
+        return temp;
+    }
+    return "ERROR";
 }
 
-void semantic::calculatTypeBinary (string type1, string type2, string op) {
-    type_stack.push_back(c.result(op,type1,type2));
+void semantic::calculatTypeUnary (string op) {
+    type_stack.push_back(c.result(op, pop()));
+}
+
+void semantic::calculatTypeBinary (string op) {
+    type_stack.push_back(c.result(op, pop(), pop()));
 }
 
 
