@@ -16,7 +16,8 @@
 #define type(t) { \
     if (peek().type != t) { status = false; report(peek(), type_names[t]); return false; } \
     else if (peek().type == ID) { current_id = shift().text; } \
-    else if (peek().type == KEYWORD) { current_keyword = shift().text; } \
+    else if (peek().type == KEYWORD) { \
+        current_keyword = shift().text; } \
     else { shift(); /*cerr << "found " << type_names[t] << endl;*/ }}
 
 using namespace std;
@@ -28,7 +29,6 @@ class parser {
 private:
 
     // variables for semantic analysis
-    semantic sm;
     string current_scope, current_id, current_keyword;
 
     struct param {
@@ -96,6 +96,8 @@ private:
     bool terminal ();
 
 public: 
+
+    semantic sm;
 
     parser () {};
     parser (vector<token> tokens);
@@ -171,6 +173,7 @@ parser::parser (vector<token> tokens) {
     current_token = 0;
     line_number = 0;
     this->tokens = tokens;
+    this->sm = semantic(&line_number);
 }
 token parser::shift () {
     token t = peek();
@@ -230,7 +233,9 @@ bool parser::global () {
 }
 bool parser::function () {
 
-    sm.table.functions.insert(current_id);
+    params.clear();
+    string name = current_id;
+    sm.table.functions.insert(name);
     string id = current_id + "_", return_type = current_keyword;
 
     bool status = true;
@@ -248,7 +253,7 @@ bool parser::function () {
     }
 
     // insert funciton into symbol table after id is computed
-    sm.insertFunction(id, return_type);
+    sm.insertFunction(id, name, return_type);
 
     // insert all of the parameters
     for (pit = params.begin(); pit != params.end(); pit++) {
@@ -272,14 +277,13 @@ bool parser::block () {
     return true;
 }
 bool parser::parameters () {
-    params.empty();
     do {
         if (peek().text != ")") {
-            type(KEYWORD);
-            type(ID);
             // insert param for future processing.
             struct param p; 
+            type(KEYWORD);
             p.type = current_keyword;
+            type(ID);
             p.name = current_id;
             params.push_back(p);
         }
@@ -324,6 +328,7 @@ bool parser::line () {
             unshift();
             unshift();
             if (call()) {
+                sm.pop();
                 text(";");
                 return true;
             }
@@ -340,7 +345,7 @@ bool parser::local () {
     type(KEYWORD);
     do {
         type(ID);
-        sm.table.insert(current_id, current_keyword, current_scope);
+        sm.insertLocal(current_id, current_keyword, current_scope);
         if (peek().text == "=") {
             shift();
             if(!expression()) return false;
@@ -352,7 +357,6 @@ bool parser::local () {
 }
 bool parser::assign () {
     type(ID);
-    cout << current_id << endl;
     string id = current_id;
     text("=");
     if(!expression()) return false;
@@ -372,7 +376,7 @@ bool parser::_if () {
     }
     text(")");
 
-    sm.coditions(line_number);
+    sm.conditions();
 
     if (peek().text == "{") {
         if (!block()) return false;
@@ -404,7 +408,7 @@ bool parser::_while () {
     }
     text(")");
 
-    sm.coditions(line_number);
+    sm.conditions();
 
     if (peek().text == ";") {
         return true;
@@ -424,6 +428,9 @@ bool parser::_return () {
     return true;
 }
 bool parser::call() {
+
+    params.clear();
+
     type(ID);
     string name = current_id, id = current_id + "_";
     text ("(");
@@ -545,11 +552,12 @@ bool parser::sum () {
 bool parser::product () {
     string op = "";
     do {
+
+        if (!sign()) return false;
+
         if (op != "") {
             sm.calculatTypeBinary(op);
         }
-
-        if (!sign()) return false;
 
         if (shift().text == "*") {
             op = "*";

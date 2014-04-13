@@ -40,19 +40,19 @@ enum types {
 };
 
 const char *type_names[] = {
-    "UNDEFINED",
-    "OPERATOR",
-    "DELIMITER",
-    "INTEGER",
-    "FLOAT",
-    "HEXADECIMAL",
-    "OCTAL",
-    "STRING",
-    "CHARACTER",
-    "IDENTIFIER",
-    "KEYWORD",
-    "INTEGER",
-    "BOOL"
+    "undefined",
+    "operator",
+    "delimiter",
+    "int",
+    "float",
+    "hexadecimal",
+    "octal",
+    "string",
+    "char",
+    "identifier",
+    "keyword",
+    "int",
+    "bool"
 };
 
 const int numwords = 12;
@@ -63,7 +63,7 @@ const char *keywords[] = {
     "for",
     "return",
     "int",
-    "integer",
+    "int",
     "float",
     "void",
     "char",

@@ -75,14 +75,20 @@ int main (int argc, char** argv) {
         line_number++;
     }
 
+    parser p (tokens);
+    bool status = p.parse();
+
     if (mode == 2) {
-        parser p (tokens);
-        if (p.parse()) {
+        if (status) {
             cout << "Build Successful" << endl;
         } else {
             cout << "Build Failed" << endl;
             p.print(fout);
         }
+    }
+
+    if (mode == 0) {
+        p.sm.print(cout);
     }
 
     fin.close();

@@ -1,0 +1,11 @@
+Duplicated variable x on line 3
+Duplicated method x on line 5
+Duplicated variable x on line 6
+Variable cse340 not found on line 10
+Type or number of parameters in method x are incorrect on line 14
+Type mismatch on line 14
+Type mismatch on line 16
+Method anUnknownMethod not found on line 19
+Boolean expression expected on line 24
+Return type mismatch on line 32
+Type or number of parameters in method sort are incorrect on line 35

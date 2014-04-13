@@ -18,7 +18,7 @@
 // return semantic result after evaluation
 #define eval(expr,type,rule,message) { \
     lexparse(expr); p.rule(); \
-    /*cerr << p.sm.type_stack.size() << endl; \*/ \
+    /*cerr << p.sm.type_stack.size() << endl; */ \
     assert(p.sm.type_stack.size() > 0 && \
         p.sm.type_stack.back() == type, message) }
 
@@ -28,6 +28,18 @@
     assert(p.sm.table.table[id].size() > 0 && \
         p.sm.table.table[id][0].type == __type && \
         p.sm.table.table[id][0].scope == __scope, message) }
+    /*
+    if (p.sm.table.table[id].size() > 0) { \
+        cerr << "type: "<< p.sm.table.table[id][0].type << endl; \
+        cerr << "scope: " << p.sm.table.table[id][0].scope << endl; } \*/
+
+#define xsymbol(expr,id,__type,__scope,rule,message) { }
+
+// evaluate for correct semantics
+#define correct(expr,rule,message) { \
+    lexparse(expr); p.rule(); \
+    if (p.sm.errors.size() > 0) { cerr << p.sm.errors[0].type << endl; } \
+    assert(p.sm.errors.size() == 0, message) }
 
 // evaluate for errors
 #define error(expr,error,rule,message) { \
@@ -44,45 +56,54 @@ void test_semantic () {
     __title("Testing Type Evaluation");
 
     // terminal types
-    eval("2", "INTEGER", sum,"should be INTEGER");
-    eval("3.14", "FLOAT", sum,"should be float");
-    eval("2+2", "INTEGER", sum,"sum of two ints is an int");
+    eval("2", "int", sum,"should be int");
+    eval("3.14", "float", sum,"should be float");
+    eval("2+2", "int", sum,"sum of two ints is an int");
 
     // addition with floats
-    eval("2.2+2", "FLOAT", sum,"float + int = float");
-    eval("2+2.2", "FLOAT", sum,"int + float = float");
-    eval("2.2+2.2", "FLOAT", sum,"float + float = float");
+    eval("2.2+2", "float", sum,"float + int = float");
+    eval("2+2.2", "float", sum,"int + float = float");
+    eval("2.2+2.2", "float", sum,"float + float = float");
 
     // string concatenation
-    eval("\"hello\"+2", "STRING", sum,"string + * = string");
-    eval("\"hello\"+2.2", "STRING", sum,"string + * = string");
-    eval("\"hello\"+\'a\'", "STRING", sum,"string + * = string");
-    eval("\"hello\"+\"a\"", "STRING", sum,"string + * = string");
+    eval("\"hello\"+2", "string", sum,"string + * = string");
+    eval("\"hello\"+2.2", "string", sum,"string + * = string");
+    eval("\"hello\"+\'a\'", "string", sum,"string + * = string");
+    eval("\"hello\"+\"a\"", "string", sum,"string + * = string");
 
+    // error stuff
+    eval("\"hello\" / \"hello\"", "error", expression,"string / string");
+
+/*
     // relational operators
-    eval("1 < 2", "BOOL", relational, "relational returns bool");
-    eval("1.0 < 2", "BOOL", relational, "relational returns bool");
-    eval("1 > 2.0", "BOOL", relational, "relational returns bool");
-    eval("1.0 > 2.0", "BOOL", relational, "relational returns bool");
+    eval("1 < 2", "bool", relational, "relational returns bool");
+    eval("1.0 < 2", "bool", relational, "relational returns bool");
+    eval("1 > 2.0", "bool", relational, "relational returns bool");
+    eval("1.0 > 2.0", "bool", relational, "relational returns bool");
 
     // not operator
-    eval("true", "BOOL", _not, "it should be bool");
-    eval("!true", "BOOL", _not, "it should be bool");
-    eval("!(1 < 2)", "BOOL", _not, "it should be bool");
+    eval("true", "bool", _not, "it should be bool");
+    eval("!true", "bool", _not, "it should be bool");
+    eval("!(1 < 2)", "bool", _not, "it should be bool");
 
     // and/or operators
-    eval("true & false", "BOOL", _and, "it should be bool");
-    eval("true & 1 < 2", "BOOL", _and, "it should be bool");
-    eval("true | true ", "BOOL", expression, "it should be bool");
-    eval("(true & false) | true", "BOOL", expression, "it should be bool");
+    eval("true & false", "bool", _and, "it should be bool");
+    eval("true & 1 < 2", "bool", _and, "it should be bool");
+    eval("true | true ", "bool", expression, "it should be bool");
+    eval("(true & false) | true", "bool", expression, "it should be bool");
 
     // negative stuff
-    eval("-3.14", "FLOAT", expression, "-PI");
-    eval("-1", "INTEGER", expression, "-1");
+    eval("-3.14", "float", expression, "-PI");
+    eval("-1", "int", expression, "-1");
 
     // crazy expressions
-    eval("(2 + 1)/(3 + 1) ", "INTEGER", expression, "it should be an integer.");
-    eval("(1 < 2) | (2 < 1)", "BOOL", expression, "it should be bool");
+    eval("(2 + 1)/(3 + 1) ", "int", expression, "it should be an integer.");
+    eval("(1 < 2) | (2 < 1)", "bool", expression, "it should be bool");
+    eval("\"world\" + 5 + 2.3 + \"happy\" + true", "string", expression, "it should be bool");
+    eval("main()", "error", expression, "it should be bool");
+
+    eval("int x = 1;", "int", line, "it should be bool");
+    */
 
     __end();
 
@@ -94,20 +115,37 @@ void test_semantic () {
 
     // functions
     symbol("int fib () {}", "fib_", "int", "function", program, "insert functions");
-    symbol("float fib (int x) {}", "fib_int_", "float", "function", program, "insert functions");
+    symbol("int fib (int z) { }", "fib_int_", "int", "function", program, "insert functions");
     symbol("void strcpy (string from, string to) {}", 
         "strcpy_string_string_", "void", "function", program, "insert functions");
 
     // local variables scoped to function
     symbol("int fun () { int a; }", "a", "int", "fun_", program, "insert local");
     symbol("void main () { float i,j; }", "j", "float", "main_", program, "insert local");
-    symbol( "void main (int arcg, string argv ) {"
+    symbol( "void main (int arcg, string argv) {"
                 "float i,j; }", 
             "j", "float", "main_int_string_", program, "complex insert local");
 
     // local variables
     symbol("int i;", "i", "int", "", local, "local variables");
     symbol("float a;", "a", "float", "", local, "local variables");
+
+    __end();
+
+    __title("Testing Semantic Correctness");
+
+    // while statements
+    correct("while (1 < 2) {}", _while, "correct while");
+    correct("while (true) {}", _while, "correct while");
+
+    // if statements
+    correct("if (1<2) {}", _if, "correct if");
+    correct("if (true) {}", _if, "correct if");
+
+    // stuff in functions
+    correct("int fun () { while (2 < 1) {} }", program, "correct program");
+    correct("int fun () { int i; while (i < 1) {} }", program, "correct program");
+    correct("int fun () { int i, j; while (i < j) {} }", program, "correct program");
 
     __end();
 

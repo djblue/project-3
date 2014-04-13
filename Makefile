@@ -77,3 +77,13 @@ ptc%: tc/parser/input%.txt
 	@./run -p input.txt output.txt
 	@diff -bc output.txt tc/parser/output$*.txt && echo "PASSED $*"
 	@rm -f input.txt output.txt
+
+semantic: stc1
+
+# run all test cases for parser
+stc%: tc/semantic/input%.txt
+	@rm -f input.txt
+	@cp tc/parser/input$*.txt input.txt
+	@./run input.txt output.txt
+	@diff -bc output.txt tc/parser/output$*.txt && echo "PASSED $*"
+	@rm -f input.txt output.txt

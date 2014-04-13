@@ -152,7 +152,7 @@ void test_parser () {
     alpe("while () {}", "value or identifier", ")", _while, "expect statement");
 
     // missing argument name
-    alpe("float x (integer ) {}", "IDENTIFIER", ")", program, "expects IDENTIFIER");
+    alpe("float x (int ) {}", "identifier", ")", program, "expects IDENTIFIER");
 
     // fun if stuff
     alpe("if", "(", "", _if, "needs open (");
@@ -170,11 +170,11 @@ void test_parser () {
     // testing global declaration
     alpe("int i", ";", "", program, 
         "Error for no ';' for global declaration.");
-    alpe("123", "KEYWORD", "123",  program, 
+    alpe("123", "keyword", "123",  program, 
         "Error for no 'type' for global declaration.");
-    alpe("int int", "IDENTIFIER", "int", program, 
+    alpe("int int", "identifier", "int", program, 
         "Error for no 'identifier' for global declaration.");
-    alpe("int", "IDENTIFIER", "", program, 
+    alpe("int", "identifier", "", program, 
         "Error for no 'identifier' for global declaration.");
 
     // bad expressions
