@@ -88,7 +88,7 @@ int main (int argc, char** argv) {
     }
 
     if (mode == 0) {
-        p.sm.print(cout);
+        p.sm.print(fout);
     }
 
     fin.close();
