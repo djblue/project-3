@@ -172,6 +172,10 @@ vector<string> lexer::split (string str) {
     string::iterator it;
 
     for (it = str.begin(); it != str.end(); it++) {
+
+        // skip annoying tab characters 
+        if (*it == '\t') { continue; }
+
         // ignore normal splitting rules
         if (inQuotes) {
             temp += *it;

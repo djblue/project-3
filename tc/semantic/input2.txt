@@ -1,0 +1,38 @@
+float x () {
+    float x;
+    x = 5.3;
+}
+float y () {
+  string z;
+  char y;
+  void l;
+  bool w;
+  int cse340 = 100;
+}
+
+int x (string x) {
+  x = "hello";
+  float y = x();
+  x = "world" + 5 + 2.3 + "happy" + true;
+  x = "cse340" + "asu";
+}
+void sort (float arr) {
+    int i = 0; 
+    int j = 0;
+    while (i < 10) {
+        while (j < 10) {
+            if (j-1 < 4) {
+                arr = 2.3;
+                arr = 1.5;            
+            } else { }
+        }
+    }
+    while (i < 10) {
+    }
+}
+
+float main () {
+   sort(1.5);  
+}
+void method () {
+}
